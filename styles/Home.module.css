@@ -3,7 +3,7 @@
 }
 
 .main {
-  min-height: 100vh;
+  min-height: 90vh;
   padding: 4rem 0;
   flex: 1;
   display: flex;
@@ -13,6 +13,8 @@
 }
 
 .footer {
+  min-height: 10vh;
+  height: 10vh;
   display: flex;
   flex: 1;
   padding: 2rem 0;
