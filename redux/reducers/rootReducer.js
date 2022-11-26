@@ -1,9 +1,9 @@
 import main from './main';
-import chatReducers from "./chatReducers"
+import chatReducer from "./chatReducer"
 import { combineReducers } from 'redux'
 
 const rootReducer = combineReducers({
     main,
-    chatReducers,
+    chatReducer,
 });
 export default rootReducer;

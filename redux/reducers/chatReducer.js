@@ -7,12 +7,14 @@ const chatReducer = (state = {
 switch(action.type){
 
   case t.SET_CHAT:
-    console.log("state", state, "action.payload", action.payload);
+    // console.log("state", state, "action.payload", action.payload);
       return { 
         ...state,
-        messages: action.payload
+        messages: [...state.messages, action.payload]
       };
-  default: console.log("default");return { ...state };
+  default:
+    // console.log("default");
+    return { ...state };
   }
 };
 export default chatReducer;

@@ -1,6 +1,6 @@
 import * as t from '../actionTypes'
 
-export const setInfoAction = (name) => ({
+export const setUsernameAction = (name) => ({
     type: t.SET_NAME,
     payload: name,
 });

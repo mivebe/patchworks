@@ -1,18 +1,52 @@
 import Head from 'next/head'
-import { connect, useSelector, useDispatch } from "react-redux"
-import {setInfoAction} from '../redux/actions/main'
-import Image from 'next/image'
-import { useEffect, useState } from 'react'
 import styles from '../styles/Home.module.css'
-import Pusher from 'pusher-js'
-import { v4 as getUUID } from 'uuid';
+import { useSelector, useDispatch } from "react-redux"
+import { setUsernameAction } from '../redux/actions/main'
+import { useEffect, useState } from 'react';
+import Pusher from 'pusher-js';
+
 
 const Home = () => {
   const name = useSelector((state) => state.main.name)
   const dispatch = useDispatch()
+  const [username, setUsername] = useState("");
+
   console.log(name);
   // console.log(props);
   // console.log(setInfo);
+
+  useEffect(() => {
+    Pusher.logToConsole = true;    // Enable pusher logging - don't include this in production
+
+    const pusher = new Pusher('c25ea714adba518a4f2d', {
+      cluster: 'eu'
+    });
+
+    const channel = pusher.subscribe('general-channel');
+    channel.bind('new-user', function(data) {
+      dispatch(setUsernameAction(data.username))
+    });
+  }, []);
+
+  const handleInputChange = (e) => {
+    setUsername(e.target.value)
+  };
+
+  const handleSubmit = async (e) =>{
+    e.preventDefault();
+
+    console.log('from submit', e.target.value);
+
+    await fetch('/api/general',{
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        username
+      }),
+    });
+
+    dispatch(setUsernameAction(username))
+  }
 
   return (
     <div className={styles.container}>
@@ -22,14 +56,18 @@ const Home = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+
       <main className={styles.main}>
-        {name}
-        <button onClick={() => dispatch(setInfoAction(name+20))}>ASD</button>
+        <p>Hello, {name}</p>
+        <div style={{display:"flex"}}>
+          <form onSubmit={handleSubmit}>
+            <input onChange={handleInputChange} placeholder="Example: Pesho1 ?" value={username}/>
+            <button type='submit'>Play</button>
+          </form>
+        </div>
       </main>
 
-      <footer className={styles.footer}>
-        Footer
-      </footer>
+
     </div>
   )
 };
