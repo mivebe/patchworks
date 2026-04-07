@@ -44,7 +44,7 @@ export function initGame(player1Name: string, player2Name: string): GameState {
     specialPatchesRemaining: SPECIAL_PATCH_SPACES.length,
     specialTileAwarded: false,
     phase: 'playing',
-    activePlayerId: 0,
+    activePlayerId: (Math.random() < 0.5 ? 0 : 1) as 0 | 1,
     firstToFinish: null,
   };
 }

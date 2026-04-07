@@ -18,3 +18,17 @@ export interface RoomState {
   players: { id: string; name: string; playerId: 0 | 1 }[];
   gameState: GameState | null;
 }
+
+/** A room listing shown in the lobby. */
+export interface OpenRoom {
+  roomId: string;
+  hostName: string;
+  createdAt: number;
+}
+
+/** Messages for the lobby room. */
+export type LobbyServerMessage =
+  | { type: 'ROOM_LIST'; rooms: OpenRoom[] };
+
+export type LobbyClientMessage =
+  | { type: 'SUBSCRIBE' };

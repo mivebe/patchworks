@@ -1,7 +1,15 @@
 import type * as Party from 'partykit/server';
-import type { ClientMessage, ServerMessage, RoomState } from './protocol';
+import type {
+  ClientMessage,
+  ServerMessage,
+  RoomState,
+  LobbyServerMessage,
+  OpenRoom,
+} from './protocol';
 import type { GameState } from '../src/engine/types';
 import { initGame, applyAction } from '../src/engine/gameEngine';
+
+const LOBBY_ROOM_ID = '__LOBBY__';
 
 interface PlayerConnection {
   connectionId: string;
@@ -13,7 +21,54 @@ export default class PatchworkServer implements Party.Server {
   players: PlayerConnection[] = [];
   gameState: GameState | null = null;
 
+  // Lobby-only state (only used when room.id === LOBBY_ROOM_ID)
+  openRooms: Map<string, OpenRoom> = new Map();
+
   constructor(readonly room: Party.Room) {}
+
+  get isLobby() {
+    return this.room.id === LOBBY_ROOM_ID;
+  }
+
+  // ─── Lobby methods ───
+
+  broadcastRoomList() {
+    const msg: LobbyServerMessage = {
+      type: 'ROOM_LIST',
+      rooms: Array.from(this.openRooms.values()),
+    };
+    this.room.broadcast(JSON.stringify(msg));
+  }
+
+  async onRequest(req: Party.Request): Promise<Response> {
+    // HTTP endpoint used by game rooms to notify the lobby
+    if (!this.isLobby) {
+      return new Response('Not found', { status: 404 });
+    }
+
+    if (req.method === 'POST') {
+      const body = await req.json() as
+        | { action: 'add'; room: OpenRoom }
+        | { action: 'remove'; roomId: string };
+
+      if (body.action === 'add') {
+        this.openRooms.set(body.room.roomId, body.room);
+      } else if (body.action === 'remove') {
+        this.openRooms.delete(body.roomId);
+      }
+
+      this.broadcastRoomList();
+      return new Response('OK');
+    }
+
+    // GET returns current room list
+    const rooms = Array.from(this.openRooms.values());
+    return new Response(JSON.stringify(rooms), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ─── Common methods ───
 
   getRoomState(): RoomState {
     return {
@@ -33,7 +88,7 @@ export default class PatchworkServer implements Party.Server {
     };
   }
 
-  send(connection: Party.Connection, msg: ServerMessage) {
+  send(connection: Party.Connection, msg: ServerMessage | LobbyServerMessage) {
     connection.send(JSON.stringify(msg));
   }
 
@@ -41,12 +96,56 @@ export default class PatchworkServer implements Party.Server {
     this.room.broadcast(JSON.stringify(msg));
   }
 
+  /** Notify the lobby room that this game room changed status. */
+  async notifyLobby(action: 'add' | 'remove') {
+    if (this.isLobby) return;
+    try {
+      const lobby = this.room.context.parties.main.get(LOBBY_ROOM_ID);
+      if (action === 'add' && this.players.length === 1) {
+        await lobby.fetch('/', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'add',
+            room: {
+              roomId: this.room.id,
+              hostName: this.players[0].name,
+              createdAt: Date.now(),
+            } satisfies OpenRoom,
+          }),
+        });
+      } else if (action === 'remove') {
+        await lobby.fetch('/', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'remove', roomId: this.room.id }),
+        });
+      }
+    } catch {
+      // Lobby notification is best-effort
+    }
+  }
+
+  // ─── Game room handlers ───
+
   onConnect(connection: Party.Connection) {
+    if (this.isLobby) {
+      // Send current room list to new lobby subscriber
+      this.send(connection, {
+        type: 'ROOM_LIST',
+        rooms: Array.from(this.openRooms.values()),
+      });
+      return;
+    }
+
     // Send current room state so reconnecting clients catch up
     this.send(connection, { type: 'ROOM_STATE', state: this.getRoomState() });
   }
 
   onMessage(message: string, sender: Party.Connection) {
+    if (this.isLobby) {
+      // Lobby clients just subscribe — no messages needed
+      return;
+    }
+
     let parsed: ClientMessage;
     try {
       parsed = JSON.parse(message as string);
@@ -61,7 +160,6 @@ export default class PatchworkServer implements Party.Server {
         const existing = this.players.find((p) => p.connectionId === sender.id);
         if (existing) {
           existing.name = parsed.playerName;
-          // Re-send their assignment so they recover their playerId
           this.send(sender, { type: 'ASSIGNED', playerId: existing.playerId });
           this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
           if (this.gameState) {
@@ -82,7 +180,6 @@ export default class PatchworkServer implements Party.Server {
           playerId,
         });
 
-        // Tell this client their assigned playerId
         this.send(sender, { type: 'ASSIGNED', playerId });
 
         this.broadcast({
@@ -91,10 +188,17 @@ export default class PatchworkServer implements Party.Server {
           playerId,
         });
 
+        // First player joined — notify lobby that room is open
+        if (this.players.length === 1) {
+          this.notifyLobby('add');
+        }
+
         // Start the game when both players have joined
         if (this.players.length === 2) {
           this.gameState = initGame(this.players[0].name, this.players[1].name);
           this.broadcast({ type: 'GAME_STATE', gameState: this.gameState });
+          // Room is full — remove from lobby
+          this.notifyLobby('remove');
         }
 
         this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
@@ -107,7 +211,6 @@ export default class PatchworkServer implements Party.Server {
           return;
         }
 
-        // Verify it's this player's turn
         const player = this.players.find((p) => p.connectionId === sender.id);
         if (!player) {
           this.send(sender, { type: 'ERROR', message: 'You are not in this game' });
@@ -119,7 +222,6 @@ export default class PatchworkServer implements Party.Server {
           return;
         }
 
-        // Validate and apply the action
         const newState = applyAction(this.gameState, parsed.action);
         if (!newState) {
           this.send(sender, { type: 'ERROR', message: 'Invalid action' });
@@ -134,14 +236,11 @@ export default class PatchworkServer implements Party.Server {
   }
 
   onClose(connection: Party.Connection) {
-    // Don't remove the player — allow reconnection.
-    // Just notify others.
+    if (this.isLobby) return;
+
     const player = this.players.find((p) => p.connectionId === connection.id);
     if (player) {
-      this.broadcast({
-        type: 'ROOM_STATE',
-        state: this.getRoomState(),
-      });
+      this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
     }
   }
 }

@@ -26,7 +26,7 @@ export function PlayerInfo({ playerId, compact = false }: PlayerInfoProps) {
   }
 
   return (
-    <div className={`rounded-lg p-3 ${isActive ? 'bg-gray-700/50 ring-1 ring-white/20' : 'bg-gray-800/50'}`}>
+    <div className={`rounded-lg p-2 md:p-3 ${isActive ? 'bg-gray-700/50 ring-1 ring-white/20' : 'bg-gray-800/50'}`}>
       <div className="flex items-center gap-2 mb-2">
         <span className={`w-3 h-3 rounded-full ${playerId === 0 ? 'bg-blue-500' : 'bg-rose-500'}`} />
         <span className={`font-bold ${isActive ? 'text-white' : 'text-gray-400'}`}>

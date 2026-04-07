@@ -1,12 +1,14 @@
 import { useGameStore } from '../../store/gameStore';
 import { getAvailablePatchIndices } from '../../engine/gameEngine';
 import { PatchThumbnail } from './PatchThumbnail';
+import { useDragScroll } from '../../hooks/useDragScroll';
 
 export function PatchStrip() {
   const gameState = useGameStore((s) => s.gameState);
   const selectedPatchChoice = useGameStore((s) => s.selectedPatchChoice);
   const selectPatch = useGameStore((s) => s.selectPatch);
   const isMyTurn = useGameStore((s) => s.isMyTurn);
+  const scrollRef = useDragScroll<HTMLDivElement>();
 
   if (!gameState || gameState.phase === 'gameOver') return null;
 
@@ -27,7 +29,7 @@ export function PatchStrip() {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-1 overflow-x-auto pb-2 px-2 scrollbar-thin">
+      <div ref={scrollRef} className="flex items-center gap-1 overflow-x-auto pb-2 px-2 custom-scrollbar touch-pan-y select-none">
         {/* Neutral token marker */}
         <div className="shrink-0 text-yellow-400 text-lg px-1" title="Neutral token">
           ▲

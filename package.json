@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:party\"",
+    "dev:client":"vite", 
     "dev:party": "npx partykit dev",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:party\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -22,6 +22,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.0",

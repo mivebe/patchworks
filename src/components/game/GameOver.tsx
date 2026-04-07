@@ -25,8 +25,8 @@ export function GameOver() {
   const iWon = winner === myPlayerId;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-xl p-8 w-full max-w-lg shadow-2xl">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4">
+      <div className="bg-gray-800 rounded-xl p-4 md:p-8 w-full max-w-lg shadow-2xl">
         <h2 className="text-3xl font-bold text-white text-center mb-2">Game Over</h2>
         <p className="text-center mb-6 text-lg">
           {iWon ? (

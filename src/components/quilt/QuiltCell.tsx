@@ -3,7 +3,6 @@ interface QuiltCellProps {
   preview?: 'valid' | 'invalid' | null;
   isSpecialPatchTarget?: boolean;
   onClick?: () => void;
-  onMouseEnter?: () => void;
   playerColor?: string;
 }
 
@@ -12,10 +11,9 @@ export function QuiltCell({
   preview,
   isSpecialPatchTarget,
   onClick,
-  onMouseEnter,
   playerColor = 'bg-blue-500',
 }: QuiltCellProps) {
-  let className = 'w-8 h-8 border border-gray-600 transition-colors duration-75 ';
+  let className = 'aspect-square w-full border border-gray-600 transition-colors duration-75 ';
 
   if (filled) {
     className += playerColor + ' ';
@@ -37,7 +35,6 @@ export function QuiltCell({
     <div
       className={className}
       onClick={onClick}
-      onMouseEnter={onMouseEnter}
     />
   );
 }

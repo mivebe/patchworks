@@ -14,8 +14,14 @@ export function usePartySocket({ roomId, onMessage, onOpen }: UsePartySocketOpti
   const socketRef = useRef<PartySocket | null>(null);
   const onMessageRef = useRef(onMessage);
   const onOpenRef = useRef(onOpen);
-  onMessageRef.current = onMessage;
-  onOpenRef.current = onOpen;
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
+
+  useEffect(() => {
+    onOpenRef.current = onOpen;
+  }, [onOpen]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -53,7 +59,6 @@ export function usePartySocket({ roomId, onMessage, onOpen }: UsePartySocketOpti
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify(msg));
     } else {
-      // Queue the message until the socket opens
       const handler = () => {
         socket.send(JSON.stringify(msg));
         socket.removeEventListener('open', handler);

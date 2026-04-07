@@ -26,7 +26,7 @@ export function PatchThumbnail({
     <button
       onClick={onClick}
       disabled={!isAvailable}
-      className={`flex flex-col items-center gap-1 p-2 rounded-lg ${borderClass} ${
+      className={`flex flex-col items-center gap-1 p-1.5 md:p-2 rounded-lg ${borderClass} ${
         isAvailable ? 'cursor-pointer hover:bg-gray-700/50' : 'opacity-40 cursor-default'
       } transition-all bg-gray-800/50`}
     >

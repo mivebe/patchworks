@@ -10,7 +10,7 @@ import { transformShape } from '../engine/patchUtils';
 import { calculateScore } from '../engine/scoring';
 
 export type ActiveTab = 'myBoard' | 'opponent' | 'timeBoard';
-export type ConnectionPhase = 'lobby' | 'waiting' | 'playing' | 'finished';
+export type ConnectionPhase = 'lobby' | 'waiting' | 'coinFlip' | 'playing' | 'finished';
 
 interface GameStore {
   // Connection state
@@ -56,6 +56,7 @@ interface GameStore {
   handleGameState: (gameState: GameState) => void;
   handlePlayerJoined: (playerName: string, playerId: 0 | 1) => void;
   handleError: (message: string) => void;
+  finishCoinFlip: () => void;
 
   // UI actions
   setActiveTab: (tab: ActiveTab) => void;
@@ -78,7 +79,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Connection state
   connectionPhase: 'lobby',
   roomId: null,
-  playerName: '',
+  playerName: localStorage.getItem('patchwork_playerName') || '',
   myPlayerId: null,
   roomState: null,
   error: null,
@@ -143,7 +144,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   // Lobby actions
-  setPlayerName: (name) => set({ playerName: name }),
+  setPlayerName: (name) => {
+    localStorage.setItem('patchwork_playerName', name);
+    set({ playerName: name });
+  },
 
   createRoom: () => {
     const roomId = generateRoomId();
@@ -171,6 +175,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   handleRoomState: (state) => {
+    const { connectionPhase: current } = get();
+    // Don't overwrite coinFlip phase — let the animation finish
+    if (current === 'coinFlip') {
+      set({ roomState: state });
+      return;
+    }
+
     const phase: ConnectionPhase = state.phase === 'waiting'
       ? 'waiting'
       : state.phase === 'finished'
@@ -185,9 +196,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   handleGameState: (gameState) => {
+    const { connectionPhase } = get();
+    // First game state received (from waiting) → show coin flip
+    const isFirstGameState = connectionPhase === 'waiting';
     set({
       gameState,
-      connectionPhase: gameState.phase === 'gameOver' ? 'finished' : 'playing',
+      connectionPhase: gameState.phase === 'gameOver'
+        ? 'finished'
+        : isFirstGameState
+          ? 'coinFlip'
+          : 'playing',
       selectedPatchChoice: null,
       currentRotation: 0,
       isFlipped: false,
@@ -200,6 +218,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   handleError: (message) => set({ error: message }),
+
+  finishCoinFlip: () => set({ connectionPhase: 'playing' }),
 
   // UI actions
   setActiveTab: (tab) => set({ activeTab: tab }),

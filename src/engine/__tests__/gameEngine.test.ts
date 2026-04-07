@@ -11,7 +11,9 @@ import type { GameState } from '../types';
 import { STARTING_BUTTONS, TIME_BOARD_SPACES } from '../types';
 
 function createTestGame(): GameState {
-  return initGame('Alice', 'Bob');
+  const state = initGame('Alice', 'Bob');
+  state.activePlayerId = 0; // pin for deterministic tests
+  return state;
 }
 
 describe('initGame', () => {

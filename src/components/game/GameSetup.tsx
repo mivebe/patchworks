@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { useLobbySocket } from '../../hooks/useLobbySocket';
 
 export function GameSetup() {
-  const [name, setName] = useState('');
+  const storedName = useGameStore((s) => s.playerName);
+  const [name, setName] = useState(storedName);
   const [joinCode, setJoinCode] = useState('');
   const [mode, setMode] = useState<'menu' | 'join'>('menu');
   const createRoom = useGameStore((s) => s.createRoom);
   const joinRoom = useGameStore((s) => s.joinRoom);
   const setPlayerName = useGameStore((s) => s.setPlayerName);
 
+  const openRooms = useLobbySocket(true);
   const hasName = name.trim().length > 0;
 
   const handleCreate = () => {
@@ -23,9 +26,15 @@ export function GameSetup() {
     joinRoom(joinCode.trim());
   };
 
+  const handleJoinRoom = (roomId: string) => {
+    if (!hasName) return;
+    setPlayerName(name.trim());
+    joinRoom(roomId);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-      <div className="bg-gray-800 rounded-xl p-8 w-full max-w-md shadow-2xl">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+      <div className="bg-gray-800 rounded-xl p-4 md:p-8 w-full max-w-md shadow-2xl">
         <h1 className="text-3xl font-bold text-white text-center mb-2">Patchwork</h1>
         <p className="text-gray-400 text-center mb-8">Online multiplayer</p>
 
@@ -55,7 +64,7 @@ export function GameSetup() {
                 disabled={!hasName}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors"
               >
-                Join Room
+                Join with Code
               </button>
             </div>
           ) : (
@@ -87,6 +96,39 @@ export function GameSetup() {
               </button>
             </div>
           )}
+
+          {/* Open rooms */}
+          <div className="mt-6 border-t border-gray-700 pt-4">
+            <h3 className="text-sm text-gray-400 mb-3">
+              Open Rooms {openRooms.length > 0 && `(${openRooms.length})`}
+            </h3>
+            {openRooms.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-3">
+                No open rooms — create one!
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {openRooms.map((room) => (
+                  <div
+                    key={room.roomId}
+                    className="flex items-center justify-between bg-gray-700/50 rounded-lg px-4 py-3"
+                  >
+                    <div>
+                      <span className="text-white font-medium">{room.hostName}</span>
+                      <span className="text-gray-500 text-xs ml-2 font-mono">{room.roomId}</span>
+                    </div>
+                    <button
+                      onClick={() => handleJoinRoom(room.roomId)}
+                      disabled={!hasName}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:text-gray-500 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      Join
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

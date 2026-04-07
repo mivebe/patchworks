@@ -4,10 +4,6 @@ import { usePartySocket } from '../../hooks/usePartySocket';
 import type { ServerMessage } from '../../../party/protocol';
 import type { GameAction } from '../../engine/types';
 
-/**
- * Invisible component that manages the PartyKit WebSocket connection.
- * Bridges server messages to the Zustand store.
- */
 export function GameConnection() {
   const roomId = useGameStore((s) => s.roomId);
   const playerName = useGameStore((s) => s.playerName);
@@ -18,6 +14,7 @@ export function GameConnection() {
   const handlePlayerJoined = useGameStore((s) => s.handlePlayerJoined);
   const handleError = useGameStore((s) => s.handleError);
   const joinedRef = useRef(false);
+  const sendFnRef = useRef<((msg: { type: 'JOIN'; playerName: string }) => void) | null>(null);
 
   const onMessage = useCallback((msg: ServerMessage) => {
     switch (msg.type) {
@@ -40,18 +37,18 @@ export function GameConnection() {
   }, [handleAssigned, handleRoomState, handleGameState, handlePlayerJoined, handleError]);
 
   const onOpen = useCallback(() => {
-    // Send JOIN as soon as socket is open
     if (playerName && !joinedRef.current) {
       joinedRef.current = true;
-      sendRef.current({ type: 'JOIN', playerName });
+      sendFnRef.current?.({ type: 'JOIN', playerName });
     }
   }, [playerName]);
 
   const { send } = usePartySocket({ roomId, onMessage, onOpen });
 
-  // Keep a ref to send so onOpen can use it without circular deps
-  const sendRef = useRef(send);
-  sendRef.current = send;
+  // Keep send ref up to date via effect (not during render)
+  useEffect(() => {
+    sendFnRef.current = send;
+  }, [send]);
 
   // Reset joined flag when room changes
   useEffect(() => {

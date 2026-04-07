@@ -8,28 +8,27 @@ const PLAYER_COLORS = ['bg-blue-500', 'bg-rose-500'] as const;
 interface QuiltBoardProps {
   playerId: 0 | 1;
   readOnly?: boolean;
+  gridRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function QuiltBoard({ playerId, readOnly = false }: QuiltBoardProps) {
+export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardProps) {
   const gameState = useGameStore((s) => s.gameState);
   const myPlayerId = useGameStore((s) => s.myPlayerId);
   const hoverCell = useGameStore((s) => s.hoverCell);
-  const setHoverCell = useGameStore((s) => s.setHoverCell);
   const getTransformedShape = useGameStore((s) => s.getTransformedShape);
   const selectedPatchChoice = useGameStore((s) => s.selectedPatchChoice);
-  const placePatch = useGameStore((s) => s.placePatch);
   const placeSpecialPatch = useGameStore((s) => s.placeSpecialPatch);
   const isMyTurn = useGameStore((s) => s.isMyTurn);
 
   if (!gameState) return null;
 
   const player = gameState.players[playerId];
-  // Can interact only if: it's my board, it's my turn, and not read-only
   const canInteract = playerId === myPlayerId && isMyTurn() && !readOnly;
   const isPlacingSpecialPatch = gameState.phase === 'placingSpecialPatch' && canInteract;
   const isPlacingPatch = selectedPatchChoice !== null && canInteract && gameState.phase === 'playing';
   const shape = isPlacingPatch ? getTransformedShape() : null;
 
+  // Preview from drag overlay — shows green/red cells where the patch would land
   const getPreviewState = (row: number, col: number): 'valid' | 'invalid' | null => {
     if (!shape || !hoverCell || !isPlacingPatch) return null;
 
@@ -50,25 +49,17 @@ export function QuiltBoard({ playerId, readOnly = false }: QuiltBoardProps) {
   const handleCellClick = (row: number, col: number) => {
     if (isPlacingSpecialPatch) {
       placeSpecialPatch(row, col);
-    } else if (isPlacingPatch && hoverCell) {
-      placePatch(hoverCell.row, hoverCell.col);
-    }
-  };
-
-  const handleCellHover = (row: number, col: number) => {
-    if (isPlacingPatch || isPlacingSpecialPatch) {
-      setHoverCell({ row, col });
     }
   };
 
   return (
     <div
-      className="inline-block"
-      onMouseLeave={() => setHoverCell(null)}
+      ref={gridRef}
+      className="w-full max-w-[288px]"
     >
       <div
         className="grid gap-0"
-        style={{ gridTemplateColumns: `repeat(${QUILT_SIZE}, 2rem)` }}
+        style={{ gridTemplateColumns: `repeat(${QUILT_SIZE}, 1fr)` }}
       >
         {Array.from({ length: QUILT_SIZE }, (_, row) =>
           Array.from({ length: QUILT_SIZE }, (_, col) => (
@@ -79,10 +70,7 @@ export function QuiltBoard({ playerId, readOnly = false }: QuiltBoardProps) {
               isSpecialPatchTarget={isPlacingSpecialPatch && !player.quilt[row][col]}
               playerColor={PLAYER_COLORS[playerId]}
               onClick={
-                canInteract ? () => handleCellClick(row, col) : undefined
-              }
-              onMouseEnter={
-                canInteract ? () => handleCellHover(row, col) : undefined
+                isPlacingSpecialPatch ? () => handleCellClick(row, col) : undefined
               }
             />
           ))

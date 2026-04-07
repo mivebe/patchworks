@@ -12,7 +12,7 @@ export function TimeBoard() {
   const specialSet = new Set(SPECIAL_PATCH_SPACES);
 
   return (
-    <div className="p-4">
+    <div className="p-2 md:p-4">
       <h3 className="text-white font-bold mb-3 text-center">Time Board</h3>
       <div className="flex flex-wrap gap-1 justify-center max-w-lg mx-auto">
         {Array.from({ length: TIME_BOARD_SPACES }, (_, i) => {
@@ -29,7 +29,7 @@ export function TimeBoard() {
           return (
             <div
               key={i}
-              className={`w-7 h-7 ${bgClass} rounded-sm flex items-center justify-center text-[10px] relative`}
+              className={`w-6 h-6 md:w-7 md:h-7 ${bgClass} rounded-sm flex items-center justify-center text-[10px] relative`}
               title={`Space ${i}${isButton ? ' (Button Income)' : ''}${isSpecial ? ' (Special Patch)' : ''}`}
             >
               {p0Here && p1Here ? (
