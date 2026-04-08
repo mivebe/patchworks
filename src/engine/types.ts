@@ -64,8 +64,8 @@ export interface GameState {
   patchCircle: Patch[];
   /** Index into patchCircle where the neutral token sits (patches available are the next 3 clockwise). */
   neutralTokenIndex: number;
-  /** Number of special 1x1 patches remaining on the time board. */
-  specialPatchesRemaining: number;
+  /** Positions on the time board where the special 1x1 patch has been claimed, and by whom. */
+  claimedSpecialPatchSpaces: { position: number; playerId: 0 | 1 }[];
   specialTileAwarded: boolean;
   phase: GamePhase;
   /** Which player's turn it is. */

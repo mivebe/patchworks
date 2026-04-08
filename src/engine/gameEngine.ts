@@ -6,7 +6,7 @@ import type {
 } from './types';
 import { STARTING_BUTTONS, TIME_BOARD_SPACES, QUILT_SIZE } from './types';
 import { ALL_PATCHES } from './patches';
-import { getTriggeredEvents, SPECIAL_PATCH_SPACES } from './timeBoard';
+import { getTriggeredEvents, BUTTON_INCOME_SPACES } from './timeBoard';
 import { applyPlacement, createEmptyQuilt } from './patchUtils';
 import { has7x7Block } from './scoring';
 
@@ -41,7 +41,7 @@ export function initGame(player1Name: string, player2Name: string): GameState {
     players: [createPlayer(0, player1Name), createPlayer(1, player2Name)],
     patchCircle,
     neutralTokenIndex: 0,
-    specialPatchesRemaining: SPECIAL_PATCH_SPACES.length,
+    claimedSpecialPatchSpaces: [],
     specialTileAwarded: false,
     phase: 'playing',
     activePlayerId: (Math.random() < 0.5 ? 0 : 1) as 0 | 1,
@@ -92,6 +92,7 @@ function cloneState(state: GameState): GameState {
       quilt: p.quilt.map(row => [...row]),
     })) as [PlayerState, PlayerState],
     patchCircle: [...state.patchCircle],
+    claimedSpecialPatchSpaces: state.claimedSpecialPatchSpaces.map(c => ({ ...c })),
   };
 }
 
@@ -109,12 +110,12 @@ function processTimeBoardEvents(
   const events = getTriggeredEvents(oldPos, newPos);
   let needsSpecialPatchPlacement = false;
 
-  for (const { event } of events) {
+  for (const { position, event } of events) {
     if (event === 'buttonIncome') {
       state.players[playerId].buttons += state.players[playerId].totalButtonIncome;
     }
-    if (event === 'specialPatch' && state.specialPatchesRemaining > 0) {
-      state.specialPatchesRemaining--;
+    if (event === 'specialPatch' && !state.claimedSpecialPatchSpaces.some(c => c.position === position)) {
+      state.claimedSpecialPatchSpaces.push({ position, playerId });
       needsSpecialPatchPlacement = true;
     }
   }
@@ -155,13 +156,12 @@ export function applyAction(state: GameState, action: GameAction): GameState | n
     case 'ADVANCE': {
       if (newState.phase !== 'playing') return null;
 
-      // Move to one space ahead of opponent
-      const newPos = Math.min(opponent.timePosition + 1, TIME_BOARD_SPACES - 1);
-      if (newPos <= player.timePosition) return null; // Can't advance if already ahead
+      // Move one space forward
+      const newPos = Math.min(player.timePosition + 1, TIME_BOARD_SPACES - 1);
+      if (newPos <= player.timePosition) return null; // Already at end
 
-      const spacesMoving = newPos - player.timePosition;
       const oldPos = player.timePosition;
-      player.buttons += spacesMoving;
+      player.buttons += 1;
       player.timePosition = newPos;
 
       // Track first to finish for tiebreaker
@@ -278,17 +278,19 @@ function hasEmptySpace(quilt: boolean[][]): boolean {
   return false;
 }
 
-/** Check if the advance action is available (player must be behind or tied). */
+/** Check if the advance action is available (player hasn't reached the end). */
 export function canAdvance(state: GameState): boolean {
   const player = state.players[state.activePlayerId];
-  const opponent = state.players[state.activePlayerId === 0 ? 1 : 0];
-  return player.timePosition <= opponent.timePosition;
+  return player.timePosition < TIME_BOARD_SPACES - 1;
 }
 
-/** Calculate how many buttons a player would earn from advancing. */
-export function advanceButtonReward(state: GameState): number {
+/** Calculate total buttons earned from advancing 1 space (1 base + potential button income). */
+export function advanceReward(state: GameState): number {
   const player = state.players[state.activePlayerId];
-  const opponent = state.players[state.activePlayerId === 0 ? 1 : 0];
-  const newPos = Math.min(opponent.timePosition + 1, TIME_BOARD_SPACES - 1);
-  return Math.max(0, newPos - player.timePosition);
+  const newPos = Math.min(player.timePosition + 1, TIME_BOARD_SPACES - 1);
+  let reward = 1;
+  if (BUTTON_INCOME_SPACES.includes(newPos)) {
+    reward += player.totalButtonIncome;
+  }
+  return reward;
 }

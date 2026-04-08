@@ -2,8 +2,7 @@ import { useGameStore } from '../../store/gameStore';
 import { canPlace } from '../../engine/patchUtils';
 import { QUILT_SIZE } from '../../engine/types';
 import { QuiltCell } from './QuiltCell';
-
-const PLAYER_COLORS = ['bg-blue-500', 'bg-rose-500'] as const;
+import { playerTheme } from '../../theme';
 
 interface QuiltBoardProps {
   playerId: 0 | 1;
@@ -55,7 +54,7 @@ export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardPr
   return (
     <div
       ref={gridRef}
-      className="w-full max-w-[288px]"
+      className="w-full"
     >
       <div
         className="grid gap-0"
@@ -68,7 +67,7 @@ export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardPr
               filled={player.quilt[row][col]}
               preview={getPreviewState(row, col)}
               isSpecialPatchTarget={isPlacingSpecialPatch && !player.quilt[row][col]}
-              playerColor={PLAYER_COLORS[playerId]}
+              playerColor={playerTheme(playerId).cell}
               onClick={
                 isPlacingSpecialPatch ? () => handleCellClick(row, col) : undefined
               }

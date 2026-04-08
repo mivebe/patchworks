@@ -1,6 +1,7 @@
 import { useGameStore } from '../../store/gameStore';
 import { calculateScore } from '../../engine/scoring';
 import { countEmptySpaces } from '../../engine/patchUtils';
+import { playerTheme } from '../../theme';
 
 export function GameOver() {
   const gameState = useGameStore((s) => s.gameState);
@@ -47,7 +48,7 @@ export function GameOver() {
               }`}
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-blue-500' : 'bg-rose-500'}`} />
+                <span className={`w-3 h-3 rounded-full ${playerTheme(i as 0 | 1).dot}`} />
                 <span className="text-white font-bold">
                   {player.name}
                   {i === myPlayerId && ' (You)'}

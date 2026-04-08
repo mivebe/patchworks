@@ -4,12 +4,12 @@ import type { RoomState } from '../../party/protocol';
 import {
   getAvailablePatches,
   canAdvance,
-  advanceButtonReward,
+  advanceReward,
 } from '../engine/gameEngine';
 import { transformShape } from '../engine/patchUtils';
 import { calculateScore } from '../engine/scoring';
 
-export type ActiveTab = 'myBoard' | 'opponent' | 'timeBoard';
+export type ActiveTab = 'myBoard' | 'opponent';
 export type ConnectionPhase = 'lobby' | 'waiting' | 'coinFlip' | 'playing' | 'finished';
 
 interface GameStore {
@@ -30,6 +30,7 @@ interface GameStore {
   currentRotation: number;
   isFlipped: boolean;
   hoverCell: { row: number; col: number } | null;
+  pendingPlacement: { row: number; col: number } | null;
 
   // Send action callback (set by the component that owns the socket)
   _sendAction: ((action: GameAction) => void) | null;
@@ -64,6 +65,8 @@ interface GameStore {
   rotate: () => void;
   flip: () => void;
   setHoverCell: (cell: { row: number; col: number } | null) => void;
+  setPendingPlacement: (cell: { row: number; col: number } | null) => void;
+  confirmPlacement: () => void;
 
   // Game actions (send to server)
   advance: () => void;
@@ -93,6 +96,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   currentRotation: 0,
   isFlipped: false,
   hoverCell: null,
+  pendingPlacement: null,
 
   _sendAction: null,
   setSendAction: (fn) => set({ _sendAction: fn }),
@@ -128,7 +132,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   advanceReward: () => {
     const { gameState } = get();
     if (!gameState) return 0;
-    return advanceButtonReward(gameState);
+    return advanceReward(gameState);
   },
 
   getScore: (playerId: 0 | 1) => {
@@ -196,9 +200,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   handleGameState: (gameState) => {
-    const { connectionPhase } = get();
+    const { connectionPhase, myPlayerId } = get();
     // First game state received (from waiting) → show coin flip
     const isFirstGameState = connectionPhase === 'waiting';
+    const isMyTurn = myPlayerId !== null && gameState.activePlayerId === myPlayerId;
     set({
       gameState,
       connectionPhase: gameState.phase === 'gameOver'
@@ -210,6 +215,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       currentRotation: 0,
       isFlipped: false,
       hoverCell: null,
+      pendingPlacement: null,
+      activeTab: isMyTurn ? 'myBoard' : 'opponent',
     });
   },
 
@@ -229,11 +236,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
     currentRotation: 0,
     isFlipped: false,
     hoverCell: null,
+    pendingPlacement: null,
   }),
 
-  rotate: () => set((s) => ({ currentRotation: (s.currentRotation + 1) % 4 })),
-  flip: () => set((s) => ({ isFlipped: !s.isFlipped })),
+  rotate: () => set({ currentRotation: (get().currentRotation + 1) % 4, pendingPlacement: null }),
+  flip: () => set({ isFlipped: !get().isFlipped, pendingPlacement: null }),
   setHoverCell: (cell) => set({ hoverCell: cell }),
+  setPendingPlacement: (cell) => set({ pendingPlacement: cell }),
+  confirmPlacement: () => {
+    const { pendingPlacement, _sendAction, selectedPatchChoice, currentRotation, isFlipped } = get();
+    if (!_sendAction || pendingPlacement === null || selectedPatchChoice === null || !get().isMyTurn()) return;
+    _sendAction({
+      type: 'TAKE_PATCH',
+      patchChoice: selectedPatchChoice,
+      placement: { row: pendingPlacement.row, col: pendingPlacement.col, rotation: currentRotation, flipped: isFlipped },
+    });
+    set({ pendingPlacement: null });
+  },
 
   // Game actions — send to server
   advance: () => {

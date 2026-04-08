@@ -45,10 +45,10 @@ export function PatchThumbnail({
       </div>
       {size === 'md' && (
         <div className="flex gap-2 text-xs text-gray-300 mt-1">
-          <span title="Button cost">{patch.buttonCost}$</span>
-          <span title="Time cost">{patch.timeCost}t</span>
+          <span title="Button cost">🟡{patch.buttonCost}</span>
+          <span title="Time cost">⏳{patch.timeCost}</span>
           {patch.buttonIncome > 0 && (
-            <span title="Button income" className="text-green-400">+{patch.buttonIncome}$</span>
+            <span title="Button income" className="text-green-400">📈+{patch.buttonIncome}</span>
           )}
         </div>
       )}

@@ -11,7 +11,7 @@ export function QuiltCell({
   preview,
   isSpecialPatchTarget,
   onClick,
-  playerColor = 'bg-blue-500',
+  playerColor = 'bg-purple-500',
 }: QuiltCellProps) {
   let className = 'aspect-square w-full border border-gray-600 transition-colors duration-75 ';
 

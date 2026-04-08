@@ -4,7 +4,7 @@ export function ActionPanel() {
   const gameState = useGameStore((s) => s.gameState);
   const selectedPatchChoice = useGameStore((s) => s.selectedPatchChoice);
   const canAdvanceAction = useGameStore((s) => s.canAdvance);
-  const advanceReward = useGameStore((s) => s.advanceReward);
+  const advanceRewardValue = useGameStore((s) => s.advanceReward);
   const advance = useGameStore((s) => s.advance);
   const rotate = useGameStore((s) => s.rotate);
   const flip = useGameStore((s) => s.flip);
@@ -12,6 +12,8 @@ export function ActionPanel() {
   const currentRotation = useGameStore((s) => s.currentRotation);
   const isFlipped = useGameStore((s) => s.isFlipped);
   const isMyTurn = useGameStore((s) => s.isMyTurn);
+  const pendingPlacement = useGameStore((s) => s.pendingPlacement);
+  const confirmPlacement = useGameStore((s) => s.confirmPlacement);
 
   if (!gameState || gameState.phase === 'gameOver') return null;
 
@@ -40,7 +42,7 @@ export function ActionPanel() {
             disabled={!canAdvanceAction()}
             className="px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium transition-colors"
           >
-            Advance (+{advanceReward()}$)
+            Advance 1⏳ (+{advanceRewardValue()}🟡)
           </button>
 
           {hasPatchSelected && (
@@ -66,7 +68,16 @@ export function ActionPanel() {
               >
                 Cancel
               </button>
-              <span className="hidden md:inline text-gray-400 text-sm">Click on quilt to place</span>
+              {pendingPlacement ? (
+                <button
+                  onClick={confirmPlacement}
+                  className="px-3 py-1.5 text-sm md:px-4 md:py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-medium transition-colors animate-pulse"
+                >
+                  Confirm
+                </button>
+              ) : (
+                <span className="hidden md:inline text-gray-400 text-sm">Drag patch on quilt to place</span>
+              )}
             </>
           )}
         </>

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { useLobbySocket } from '../../hooks/useLobbySocket';
+import { RulesModal } from '../rules/RulesModal';
 
 export function GameSetup() {
   const storedName = useGameStore((s) => s.playerName);
   const [name, setName] = useState(storedName);
   const [joinCode, setJoinCode] = useState('');
   const [mode, setMode] = useState<'menu' | 'join'>('menu');
+  const [showRules, setShowRules] = useState(false);
   const createRoom = useGameStore((s) => s.createRoom);
   const joinRoom = useGameStore((s) => s.joinRoom);
   const setPlayerName = useGameStore((s) => s.setPlayerName);
@@ -36,7 +38,13 @@ export function GameSetup() {
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="bg-gray-800 rounded-xl p-4 md:p-8 w-full max-w-md shadow-2xl">
         <h1 className="text-3xl font-bold text-white text-center mb-2">Patchwork</h1>
-        <p className="text-gray-400 text-center mb-8">Online multiplayer</p>
+        <p className="text-gray-400 text-center mb-4">Online multiplayer</p>
+        <button
+          onClick={() => setShowRules(true)}
+          className="w-full py-2 mb-4 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          How to Play
+        </button>
 
         <div className="space-y-4">
           <div>
@@ -46,7 +54,7 @@ export function GameSetup() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
             />
           </div>
 
@@ -62,7 +70,7 @@ export function GameSetup() {
               <button
                 onClick={() => setMode('join')}
                 disabled={!hasName}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors"
               >
                 Join with Code
               </button>
@@ -77,14 +85,14 @@ export function GameSetup() {
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                   placeholder="e.g. AB12CD"
                   maxLength={6}
-                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none text-center text-2xl tracking-widest font-mono"
+                  className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none text-center text-2xl tracking-widest font-mono"
                   onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                 />
               </div>
               <button
                 onClick={handleJoin}
                 disabled={!joinCode.trim() || !hasName}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-bold rounded-lg transition-colors"
               >
                 Join
               </button>
@@ -120,7 +128,7 @@ export function GameSetup() {
                     <button
                       onClick={() => handleJoinRoom(room.roomId)}
                       disabled={!hasName}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:text-gray-500 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-600 disabled:text-gray-500 text-white text-sm font-medium rounded-lg transition-colors"
                     >
                       Join
                     </button>
@@ -131,6 +139,7 @@ export function GameSetup() {
           </div>
         </div>
       </div>
+      <RulesModal open={showRules} onClose={() => setShowRules(false)} />
     </div>
   );
 }

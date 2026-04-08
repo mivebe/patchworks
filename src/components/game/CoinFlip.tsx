@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { theme } from '../../theme';
 
 export function CoinFlip() {
   const gameState = useGameStore((s) => s.gameState);
@@ -49,7 +50,7 @@ export function CoinFlip() {
           }}
         >
           <div
-            className="absolute inset-0 rounded-full bg-blue-600 flex items-center justify-center border-4 border-blue-400 shadow-lg shadow-blue-500/30"
+            className={`absolute inset-0 rounded-full ${theme.player1.coinBg} flex items-center justify-center border-4 ${theme.player1.coinBorder} shadow-lg ${theme.player1.coinShadow}`}
             style={{ backfaceVisibility: 'hidden' }}
           >
             <span className="text-white font-bold text-lg text-center px-4">
@@ -58,7 +59,7 @@ export function CoinFlip() {
           </div>
 
           <div
-            className="absolute inset-0 rounded-full bg-rose-600 flex items-center justify-center border-4 border-rose-400 shadow-lg shadow-rose-500/30"
+            className={`absolute inset-0 rounded-full ${theme.player2.coinBg} flex items-center justify-center border-4 ${theme.player2.coinBorder} shadow-lg ${theme.player2.coinShadow}`}
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',

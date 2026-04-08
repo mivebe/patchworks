@@ -4,7 +4,6 @@ import {
   applyAction,
   getAvailablePatches,
   canAdvance,
-  advanceButtonReward,
   resolveActivePlayer,
 } from '../gameEngine';
 import type { GameState } from '../types';
@@ -47,26 +46,27 @@ describe('getAvailablePatches', () => {
 });
 
 describe('ADVANCE action', () => {
-  it('moves player ahead of opponent and earns buttons', () => {
+  it('moves player one space forward and earns 1 button', () => {
     const state = createTestGame();
-    // Player 0 at 0, player 1 at 0. Advance puts player 0 at 1.
+    // Player 0 at 0, advance moves to 1
     const newState = applyAction(state, { type: 'ADVANCE' });
     expect(newState).not.toBeNull();
     expect(newState!.players[0].timePosition).toBe(1);
     expect(newState!.players[0].buttons).toBe(STARTING_BUTTONS + 1);
   });
 
-  it('calculates correct reward', () => {
+  it('advances only one space even when opponent is far ahead', () => {
     const state = createTestGame();
     state.players[1].timePosition = 10;
-    // Player 0 at 0 advances to 11, earning 11 buttons
-    expect(advanceButtonReward(state)).toBe(11);
+    const newState = applyAction(state, { type: 'ADVANCE' });
+    expect(newState).not.toBeNull();
+    expect(newState!.players[0].timePosition).toBe(1);
+    expect(newState!.players[0].buttons).toBe(STARTING_BUTTONS + 1);
   });
 
-  it('cannot advance if already ahead', () => {
+  it('cannot advance if at end of board', () => {
     const state = createTestGame();
-    state.players[0].timePosition = 5;
-    state.players[1].timePosition = 3;
+    state.players[0].timePosition = TIME_BOARD_SPACES - 1;
     expect(canAdvance(state)).toBe(false);
   });
 
@@ -75,8 +75,8 @@ describe('ADVANCE action', () => {
     state.players[1].timePosition = 10;
     const newState = applyAction(state, { type: 'ADVANCE' });
     expect(newState).not.toBeNull();
-    // Player 0 moved to 11, player 1 at 10 — player 1 is behind
-    expect(newState!.activePlayerId).toBe(1);
+    // Player 0 moved to 1, player 1 at 10 — player 0 is still behind
+    expect(newState!.activePlayerId).toBe(0);
   });
 });
 

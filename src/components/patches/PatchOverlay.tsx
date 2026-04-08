@@ -16,7 +16,8 @@ function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
   const myPlayerId = useGameStore((s) => s.myPlayerId);
   const getTransformedShape = useGameStore((s) => s.getTransformedShape);
   const setHoverCell = useGameStore((s) => s.setHoverCell);
-  const placePatch = useGameStore((s) => s.placePatch);
+  const setPendingPlacement = useGameStore((s) => s.setPendingPlacement);
+  const pendingPlacement = useGameStore((s) => s.pendingPlacement);
 
   const shape = getTransformedShape();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -83,12 +84,14 @@ function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
     setIsDragging(false);
     overlayRef.current?.releasePointerCapture(e.pointerId);
     if (valid) {
-      placePatch(clampedRow, clampedCol);
+      setPendingPlacement({ row: clampedRow, col: clampedCol });
     }
   };
 
   let cellColor = 'bg-yellow-400/70';
-  if (isDragging) {
+  if (pendingPlacement) {
+    cellColor = 'bg-green-400/70';
+  } else if (isDragging) {
     cellColor = valid ? 'bg-green-400/70' : 'bg-red-400/70';
   }
 
