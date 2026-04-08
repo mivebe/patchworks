@@ -7,14 +7,16 @@ import type { GameAction } from '../../engine/types';
 export function GameConnection() {
   const roomId = useGameStore((s) => s.roomId);
   const playerName = useGameStore((s) => s.playerName);
+  const reconnectToken = useGameStore((s) => s.reconnectToken);
   const setSendAction = useGameStore((s) => s.setSendAction);
   const handleAssigned = useGameStore((s) => s.handleAssigned);
   const handleRoomState = useGameStore((s) => s.handleRoomState);
   const handleGameState = useGameStore((s) => s.handleGameState);
   const handlePlayerJoined = useGameStore((s) => s.handlePlayerJoined);
+  const handlePlayerDisconnected = useGameStore((s) => s.handlePlayerDisconnected);
+  const handlePlayerReconnected = useGameStore((s) => s.handlePlayerReconnected);
   const handleError = useGameStore((s) => s.handleError);
-  const joinedRef = useRef(false);
-  const sendFnRef = useRef<((msg: { type: 'JOIN'; playerName: string }) => void) | null>(null);
+  const sendFnRef = useRef<((msg: { type: 'JOIN'; playerName: string; reconnectToken: string }) => void) | null>(null);
 
   const onMessage = useCallback((msg: ServerMessage) => {
     switch (msg.type) {
@@ -30,18 +32,24 @@ export function GameConnection() {
       case 'PLAYER_JOINED':
         handlePlayerJoined(msg.playerName, msg.playerId);
         break;
+      case 'PLAYER_DISCONNECTED':
+        handlePlayerDisconnected(msg.playerId);
+        break;
+      case 'PLAYER_RECONNECTED':
+        handlePlayerReconnected(msg.playerId);
+        break;
       case 'ERROR':
         handleError(msg.message);
         break;
     }
-  }, [handleAssigned, handleRoomState, handleGameState, handlePlayerJoined, handleError]);
+  }, [handleAssigned, handleRoomState, handleGameState, handlePlayerJoined, handlePlayerDisconnected, handlePlayerReconnected, handleError]);
 
+  // Send JOIN on every socket open — server handles duplicates idempotently
   const onOpen = useCallback(() => {
-    if (playerName && !joinedRef.current) {
-      joinedRef.current = true;
-      sendFnRef.current?.({ type: 'JOIN', playerName });
+    if (playerName) {
+      sendFnRef.current?.({ type: 'JOIN', playerName, reconnectToken });
     }
-  }, [playerName]);
+  }, [playerName, reconnectToken]);
 
   const { send } = usePartySocket({ roomId, onMessage, onOpen });
 
@@ -49,11 +57,6 @@ export function GameConnection() {
   useEffect(() => {
     sendFnRef.current = send;
   }, [send]);
-
-  // Reset joined flag when room changes
-  useEffect(() => {
-    joinedRef.current = false;
-  }, [roomId]);
 
   // Provide the send function to the store for game actions
   useEffect(() => {

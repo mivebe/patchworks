@@ -1,10 +1,11 @@
 /**
  * Centralized color theme for the game.
- * Change these values to re-skin player colors across the entire app.
+ * "me" = the local player, "opponent" = the other player.
+ * These are role-based, not tied to absolute player IDs.
  */
 
 export const theme = {
-  player1: {
+  me: {
     /** Filled quilt cells */
     cell: 'bg-purple-500',
     /** Raw hex color for inline styles (SVG, canvas) */
@@ -15,6 +16,8 @@ export const theme = {
     tabActive: 'bg-purple-600',
     /** PlayerInfo panel background */
     panelBg: 'bg-purple-950/40 ring-1 ring-purple-500/30',
+    /** Whole-screen background tint when viewing this player's board */
+    screenBg: 'bg-purple-950/20',
     /** CoinFlip card */
     coinBg: 'bg-purple-600',
     coinBorder: 'border-purple-400',
@@ -22,12 +25,13 @@ export const theme = {
     /** Score card dot */
     dot: 'bg-purple-500',
   },
-  player2: {
+  opponent: {
     cell: 'bg-cyan-500',
     hex: '#06b6d4',
     text: 'text-cyan-400',
     tabActive: 'bg-cyan-600',
     panelBg: 'bg-cyan-950/40 ring-1 ring-cyan-500/30',
+    screenBg: 'bg-cyan-950/20',
     coinBg: 'bg-cyan-600',
     coinBorder: 'border-cyan-400',
     coinShadow: 'shadow-cyan-500/30',
@@ -42,7 +46,17 @@ export const theme = {
   },
 } as const;
 
-/** Helper to get a player's theme by id. */
-export function playerTheme(playerId: 0 | 1) {
-  return playerId === 0 ? theme.player1 : theme.player2;
+export type PlayerRole = 'me' | 'opponent';
+
+/** Get theme for a role. */
+export function roleTheme(role: PlayerRole) {
+  return role === 'me' ? theme.me : theme.opponent;
+}
+
+/**
+ * Get theme for a player ID, relative to the local player.
+ * Pass myPlayerId so the mapping is: myPlayerId → "me" colors, other → "opponent" colors.
+ */
+export function playerTheme(playerId: 0 | 1, myPlayerId: 0 | 1) {
+  return playerId === myPlayerId ? theme.me : theme.opponent;
 }

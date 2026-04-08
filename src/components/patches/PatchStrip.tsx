@@ -30,10 +30,6 @@ export function PatchStrip() {
   return (
     <div className="w-full">
       <div ref={scrollRef} className="flex items-center gap-1 overflow-x-auto pb-2 px-2 custom-scrollbar touch-pan-y select-none">
-        {/* Neutral token marker */}
-        <div className="shrink-0 text-yellow-400 text-lg px-1" title="Neutral token">
-          ▲
-        </div>
         {orderedIndices.map((circleIdx) => {
           const patch = circle[circleIdx];
           // Which "choice" index is this (0, 1, 2) if available?

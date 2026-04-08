@@ -67,7 +67,7 @@ export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardPr
               filled={player.quilt[row][col]}
               preview={getPreviewState(row, col)}
               isSpecialPatchTarget={isPlacingSpecialPatch && !player.quilt[row][col]}
-              playerColor={playerTheme(playerId).cell}
+              playerColor={playerTheme(playerId, myPlayerId ?? 0).cell}
               onClick={
                 isPlacingSpecialPatch ? () => handleCellClick(row, col) : undefined
               }

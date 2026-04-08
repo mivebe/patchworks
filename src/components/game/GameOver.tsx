@@ -48,7 +48,7 @@ export function GameOver() {
               }`}
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className={`w-3 h-3 rounded-full ${playerTheme(i as 0 | 1).dot}`} />
+                <span className={`w-3 h-3 rounded-full ${playerTheme(i as 0 | 1, myPlayerId!).dot}`} />
                 <span className="text-white font-bold">
                   {player.name}
                   {i === myPlayerId && ' (You)'}

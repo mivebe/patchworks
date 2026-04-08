@@ -12,6 +12,38 @@ import { calculateScore } from '../engine/scoring';
 export type ActiveTab = 'myBoard' | 'opponent';
 export type ConnectionPhase = 'lobby' | 'waiting' | 'coinFlip' | 'playing' | 'finished';
 
+// ─── Session persistence ───
+
+const SESSION_KEY = 'patchwork_session';
+
+interface SessionData {
+  roomId: string;
+  reconnectToken: string;
+  playerName: string;
+}
+
+function saveSession(data: SessionData) {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+}
+
+function loadSession(): SessionData | null {
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+// ─── Store ───
+
+const savedSession = loadSession();
+
 interface GameStore {
   // Connection state
   connectionPhase: ConnectionPhase;
@@ -20,6 +52,8 @@ interface GameStore {
   myPlayerId: 0 | 1 | null;
   roomState: RoomState | null;
   error: string | null;
+  reconnectToken: string;
+  opponentDisconnected: boolean;
 
   // Game state (received from server)
   gameState: GameState | null;
@@ -56,6 +90,8 @@ interface GameStore {
   handleRoomState: (state: RoomState) => void;
   handleGameState: (gameState: GameState) => void;
   handlePlayerJoined: (playerName: string, playerId: 0 | 1) => void;
+  handlePlayerDisconnected: (playerId: 0 | 1) => void;
+  handlePlayerReconnected: (playerId: 0 | 1) => void;
   handleError: (message: string) => void;
   finishCoinFlip: () => void;
 
@@ -79,13 +115,15 @@ function generateRoomId(): string {
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
-  // Connection state
-  connectionPhase: 'lobby',
-  roomId: null,
-  playerName: localStorage.getItem('patchwork_playerName') || '',
+  // Connection state — restore from session if available
+  connectionPhase: savedSession ? 'waiting' : 'lobby',
+  roomId: savedSession?.roomId ?? null,
+  playerName: savedSession?.playerName ?? localStorage.getItem('patchwork_playerName') ?? '',
   myPlayerId: null,
   roomState: null,
   error: null,
+  reconnectToken: savedSession?.reconnectToken ?? crypto.randomUUID(),
+  opponentDisconnected: false,
 
   // Game state
   gameState: null,
@@ -154,24 +192,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   createRoom: () => {
+    const { reconnectToken, playerName } = get();
     const roomId = generateRoomId();
+    saveSession({ roomId, reconnectToken, playerName });
     set({ roomId, connectionPhase: 'waiting', error: null });
   },
 
   joinRoom: (roomId) => {
-    set({ roomId: roomId.toUpperCase(), connectionPhase: 'waiting', error: null });
+    const { reconnectToken, playerName } = get();
+    const upper = roomId.toUpperCase();
+    saveSession({ roomId: upper, reconnectToken, playerName });
+    set({ roomId: upper, connectionPhase: 'waiting', error: null });
   },
 
-  returnToLobby: () => set({
-    connectionPhase: 'lobby',
-    roomId: null,
-    myPlayerId: null,
-    roomState: null,
-    gameState: null,
-    error: null,
-    selectedPatchChoice: null,
-    activeTab: 'myBoard',
-  }),
+  returnToLobby: () => {
+    clearSession();
+    set({
+      connectionPhase: 'lobby',
+      roomId: null,
+      myPlayerId: null,
+      roomState: null,
+      gameState: null,
+      error: null,
+      selectedPatchChoice: null,
+      activeTab: 'myBoard',
+      opponentDisconnected: false,
+      reconnectToken: crypto.randomUUID(),
+    });
+  },
 
   // Server state handlers
   handleAssigned: (playerId) => {
@@ -222,6 +270,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   handlePlayerJoined: () => {
     // Player joined notification — playerId is handled by ASSIGNED message
+  },
+
+  handlePlayerDisconnected: (playerId) => {
+    const { myPlayerId } = get();
+    if (playerId !== myPlayerId) {
+      set({ opponentDisconnected: true });
+    }
+  },
+
+  handlePlayerReconnected: (playerId) => {
+    const { myPlayerId } = get();
+    if (playerId !== myPlayerId) {
+      set({ opponentDisconnected: false });
+    }
   },
 
   handleError: (message) => set({ error: message }),

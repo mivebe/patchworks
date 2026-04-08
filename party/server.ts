@@ -15,6 +15,8 @@ interface PlayerConnection {
   connectionId: string;
   name: string;
   playerId: 0 | 1;
+  reconnectToken: string;
+  connected: boolean;
 }
 
 export default class PatchworkServer implements Party.Server {
@@ -83,6 +85,7 @@ export default class PatchworkServer implements Party.Server {
         id: p.connectionId,
         name: p.name,
         playerId: p.playerId,
+        connected: p.connected,
       })),
       gameState: this.gameState,
     };
@@ -156,11 +159,13 @@ export default class PatchworkServer implements Party.Server {
 
     switch (parsed.type) {
       case 'JOIN': {
-        // Check if this connection is already a player (reconnect)
-        const existing = this.players.find((p) => p.connectionId === sender.id);
-        if (existing) {
-          existing.name = parsed.playerName;
-          this.send(sender, { type: 'ASSIGNED', playerId: existing.playerId });
+        // 1. Same connection ID (PartySocket auto-reconnect, no page reload)
+        const existingByConn = this.players.find((p) => p.connectionId === sender.id);
+        if (existingByConn) {
+          existingByConn.name = parsed.playerName;
+          existingByConn.connected = true;
+          this.send(sender, { type: 'ASSIGNED', playerId: existingByConn.playerId });
+          this.broadcast({ type: 'PLAYER_RECONNECTED', playerId: existingByConn.playerId });
           this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
           if (this.gameState) {
             this.send(sender, { type: 'GAME_STATE', gameState: this.gameState });
@@ -168,6 +173,22 @@ export default class PatchworkServer implements Party.Server {
           return;
         }
 
+        // 2. Same reconnect token (page reload — new connection ID)
+        const existingByToken = this.players.find((p) => p.reconnectToken === parsed.reconnectToken);
+        if (existingByToken) {
+          existingByToken.connectionId = sender.id;
+          existingByToken.name = parsed.playerName;
+          existingByToken.connected = true;
+          this.send(sender, { type: 'ASSIGNED', playerId: existingByToken.playerId });
+          this.broadcast({ type: 'PLAYER_RECONNECTED', playerId: existingByToken.playerId });
+          this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
+          if (this.gameState) {
+            this.send(sender, { type: 'GAME_STATE', gameState: this.gameState });
+          }
+          return;
+        }
+
+        // 3. New player
         if (this.players.length >= 2) {
           this.send(sender, { type: 'ERROR', message: 'Room is full' });
           return;
@@ -178,6 +199,8 @@ export default class PatchworkServer implements Party.Server {
           connectionId: sender.id,
           name: parsed.playerName,
           playerId,
+          reconnectToken: parsed.reconnectToken,
+          connected: true,
         });
 
         this.send(sender, { type: 'ASSIGNED', playerId });
@@ -240,6 +263,8 @@ export default class PatchworkServer implements Party.Server {
 
     const player = this.players.find((p) => p.connectionId === connection.id);
     if (player) {
+      player.connected = false;
+      this.broadcast({ type: 'PLAYER_DISCONNECTED', playerId: player.playerId });
       this.broadcast({ type: 'ROOM_STATE', state: this.getRoomState() });
     }
   }

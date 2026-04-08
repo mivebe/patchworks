@@ -113,6 +113,60 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
               <li>Tap a cell on your quilt to place the selected patch</li>
             </ul>
           </Section>
+
+          <Section title="Player Info Legend">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-base">🟡</span>
+                <span><strong className="text-white">Buttons</strong> &mdash; Your currency. Spend to buy patches. Remaining buttons count toward your final score.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base">📈</span>
+                <span><strong className="text-green-400">Income</strong> &mdash; Button income from placed patches. Earned each time you pass a button income space.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base">⏳</span>
+                <span><strong className="text-white">Position</strong> &mdash; Your position on the time board (0&ndash;53). The player furthest behind takes the next turn.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base">🔲</span>
+                <span><strong className="text-red-400">Empty Cells</strong> &mdash; Unfilled cells on your 9&times;9 quilt. Each costs 2 points at game end.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base">⭐</span>
+                <span><strong className="text-yellow-400">7&times;7 Bonus</strong> &mdash; First to fill a 7&times;7 area earns +7 points. Shows ✓ if earned, ✗ if not.</span>
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Time Board Legend">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-sm bg-gray-700" />
+                <span><strong className="text-white">Normal space</strong> &mdash; No special effect.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-sm bg-amber-700" />
+                <span><strong className="text-amber-400">Button Income</strong> &mdash; Earn buttons equal to your total patch income.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-sm bg-teal-700" />
+                <span><strong className="text-teal-400">Special Patch</strong> &mdash; First to pass gets a free 1&times;1 patch.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-sm bg-teal-900 opacity-50" />
+                <span className="text-gray-400">Special Patch (claimed) &mdash; Already taken by a player.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-full bg-purple-500 ring-1 ring-white" />
+                <span>Your position on the board.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-4 h-4 rounded-full bg-cyan-500 ring-1 ring-white" />
+                <span>Opponent's position on the board.</span>
+              </div>
+            </div>
+          </Section>
         </div>
       </div>
     </div>

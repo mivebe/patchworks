@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { theme } from '../../theme';
+import { playerTheme } from '../../theme';
 
 export function CoinFlip() {
   const gameState = useGameStore((s) => s.gameState);
@@ -16,6 +16,9 @@ export function CoinFlip() {
   }, [finishCoinFlip]);
 
   if (!gameState || myPlayerId === null) return null;
+
+  const p0Theme = playerTheme(0, myPlayerId);
+  const p1Theme = playerTheme(1, myPlayerId);
 
   const firstPlayerId = gameState.activePlayerId;
   const firstName = gameState.players[firstPlayerId].name;
@@ -50,7 +53,7 @@ export function CoinFlip() {
           }}
         >
           <div
-            className={`absolute inset-0 rounded-full ${theme.player1.coinBg} flex items-center justify-center border-4 ${theme.player1.coinBorder} shadow-lg ${theme.player1.coinShadow}`}
+            className={`absolute inset-0 rounded-full ${p0Theme.coinBg} flex items-center justify-center border-4 ${p0Theme.coinBorder} shadow-lg ${p0Theme.coinShadow}`}
             style={{ backfaceVisibility: 'hidden' }}
           >
             <span className="text-white font-bold text-lg text-center px-4">
@@ -59,7 +62,7 @@ export function CoinFlip() {
           </div>
 
           <div
-            className={`absolute inset-0 rounded-full ${theme.player2.coinBg} flex items-center justify-center border-4 ${theme.player2.coinBorder} shadow-lg ${theme.player2.coinShadow}`}
+            className={`absolute inset-0 rounded-full ${p1Theme.coinBg} flex items-center justify-center border-4 ${p1Theme.coinBorder} shadow-lg ${p1Theme.coinShadow}`}
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
