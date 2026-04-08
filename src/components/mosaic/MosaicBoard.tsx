@@ -1,35 +1,34 @@
 import { useGameStore } from '../../store/gameStore';
-import { canPlace } from '../../engine/patchUtils';
-import { QUILT_SIZE } from '../../engine/types';
-import { QuiltCell } from './QuiltCell';
+import { canPlace } from '../../engine/tileUtils';
+import { MOSAIC_SIZE } from '../../engine/types';
+import { MosaicCell } from './MosaicCell';
 import { playerTheme } from '../../theme';
 
-interface QuiltBoardProps {
+interface MosaicBoardProps {
   playerId: 0 | 1;
   readOnly?: boolean;
   gridRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardProps) {
+export function MosaicBoard({ playerId, readOnly = false, gridRef }: MosaicBoardProps) {
   const gameState = useGameStore((s) => s.gameState);
   const myPlayerId = useGameStore((s) => s.myPlayerId);
   const hoverCell = useGameStore((s) => s.hoverCell);
   const getTransformedShape = useGameStore((s) => s.getTransformedShape);
-  const selectedPatchChoice = useGameStore((s) => s.selectedPatchChoice);
-  const placeSpecialPatch = useGameStore((s) => s.placeSpecialPatch);
+  const selectedTileChoice = useGameStore((s) => s.selectedTileChoice);
+  const placeSpecialTile = useGameStore((s) => s.placeSpecialTile);
   const isMyTurn = useGameStore((s) => s.isMyTurn);
 
   if (!gameState) return null;
 
   const player = gameState.players[playerId];
   const canInteract = playerId === myPlayerId && isMyTurn() && !readOnly;
-  const isPlacingSpecialPatch = gameState.phase === 'placingSpecialPatch' && canInteract;
-  const isPlacingPatch = selectedPatchChoice !== null && canInteract && gameState.phase === 'playing';
-  const shape = isPlacingPatch ? getTransformedShape() : null;
+  const isPlacingSpecialTile = gameState.phase === 'placingSpecialTile' && canInteract;
+  const isPlacingTile = selectedTileChoice !== null && canInteract && gameState.phase === 'playing';
+  const shape = isPlacingTile ? getTransformedShape() : null;
 
-  // Preview from drag overlay — shows green/red cells where the patch would land
   const getPreviewState = (row: number, col: number): 'valid' | 'invalid' | null => {
-    if (!shape || !hoverCell || !isPlacingPatch) return null;
+    if (!shape || !hoverCell || !isPlacingTile) return null;
 
     const shapeRow = row - hoverCell.row;
     const shapeCol = col - hoverCell.col;
@@ -41,13 +40,13 @@ export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardPr
       return null;
     }
 
-    const valid = canPlace(player.quilt, shape, hoverCell.row, hoverCell.col);
+    const valid = canPlace(player.mosaic, shape, hoverCell.row, hoverCell.col);
     return valid ? 'valid' : 'invalid';
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (isPlacingSpecialPatch) {
-      placeSpecialPatch(row, col);
+    if (isPlacingSpecialTile) {
+      placeSpecialTile(row, col);
     }
   };
 
@@ -58,18 +57,18 @@ export function QuiltBoard({ playerId, readOnly = false, gridRef }: QuiltBoardPr
     >
       <div
         className="grid gap-0"
-        style={{ gridTemplateColumns: `repeat(${QUILT_SIZE}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${MOSAIC_SIZE}, 1fr)` }}
       >
-        {Array.from({ length: QUILT_SIZE }, (_, row) =>
-          Array.from({ length: QUILT_SIZE }, (_, col) => (
-            <QuiltCell
+        {Array.from({ length: MOSAIC_SIZE }, (_, row) =>
+          Array.from({ length: MOSAIC_SIZE }, (_, col) => (
+            <MosaicCell
               key={`${row}-${col}`}
-              filled={player.quilt[row][col]}
+              filled={player.mosaic[row][col]}
               preview={getPreviewState(row, col)}
-              isSpecialPatchTarget={isPlacingSpecialPatch && !player.quilt[row][col]}
+              isSpecialTileTarget={isPlacingSpecialTile && !player.mosaic[row][col]}
               playerColor={playerTheme(playerId, myPlayerId ?? 0).cell}
               onClick={
-                isPlacingSpecialPatch ? () => handleCellClick(row, col) : undefined
+                isPlacingSpecialTile ? () => handleCellClick(row, col) : undefined
               }
             />
           ))

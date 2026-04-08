@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Custom scrollbar for patch strip */
+/* Custom scrollbar for pieces strip */
 .custom-scrollbar::-webkit-scrollbar {
   height: 6px;
 }

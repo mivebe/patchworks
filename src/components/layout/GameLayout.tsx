@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { QuiltBoard } from '../quilt/QuiltBoard';
-import { PatchStrip } from '../patches/PatchStrip';
-import { PatchOverlay } from '../patches/PatchOverlay';
+import { MosaicBoard } from '../mosaic/MosaicBoard';
+import { TileStrip } from '../tiles/TileStrip';
+import { TileOverlay } from '../tiles/TileOverlay';
 import { ActionPanel } from '../actions/ActionPanel';
 import { PlayerInfo } from '../player/PlayerInfo';
 import { TimeBoard } from '../timeBoard/TimeBoard';
@@ -96,23 +96,23 @@ export function GameLayout() {
         <TimeBoard />
       </div>
 
-      {/* Bottom: board + player info + actions + patch strip */}
+      {/* Bottom: board + player info + actions + tile strip */}
       <div className={`${screenTint} border-t border-gray-700`}>
         <div className="flex flex-col w-full gap-2 p-2">
           <div className="relative w-full">
-            <QuiltBoard
+            <MosaicBoard
               playerId={viewingPlayerId}
               readOnly={activeTab === 'opponent'}
               gridRef={activeTab === 'myBoard' ? boardGridRef : undefined}
             />
-            {activeTab === 'myBoard' && <PatchOverlay boardWidth={boardWidth} />}
+            {activeTab === 'myBoard' && <TileOverlay boardWidth={boardWidth} />}
           </div>
           <PlayerInfo playerId={viewingPlayerId} onShowRules={() => setShowRules(true)} />
         </div>
 
         <ActionPanel />
         <div className="border-t border-gray-700 py-1.5 md:py-2">
-          <PatchStrip />
+          <TileStrip />
         </div>
       </div>
 

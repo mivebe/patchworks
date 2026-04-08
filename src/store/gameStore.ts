@@ -1,12 +1,12 @@
 import { create } from 'zustand';
-import type { GameState, GameAction, Patch, Shape } from '../engine/types';
+import type { GameState, GameAction, Tile, Shape } from '../engine/types';
 import type { RoomState } from '../../party/protocol';
 import {
-  getAvailablePatches,
+  getAvailableTiles,
   canAdvance,
   advanceReward,
 } from '../engine/gameEngine';
-import { transformShape } from '../engine/patchUtils';
+import { transformShape } from '../engine/tileUtils';
 import { calculateScore } from '../engine/scoring';
 
 export type ActiveTab = 'myBoard' | 'opponent';
@@ -14,7 +14,7 @@ export type ConnectionPhase = 'lobby' | 'waiting' | 'coinFlip' | 'playing' | 'fi
 
 // ─── Session persistence ───
 
-const SESSION_KEY = 'patchwork_session';
+const SESSION_KEY = 'tessera_session';
 
 interface SessionData {
   roomId: string;
@@ -60,7 +60,7 @@ interface GameStore {
 
   // UI state
   activeTab: ActiveTab;
-  selectedPatchChoice: number | null;
+  selectedTileChoice: number | null;
   currentRotation: number;
   isFlipped: boolean;
   hoverCell: { row: number; col: number } | null;
@@ -71,8 +71,8 @@ interface GameStore {
   setSendAction: (fn: (action: GameAction) => void) => void;
 
   // Derived helpers
-  getAvailablePatches: () => Patch[];
-  getSelectedPatch: () => Patch | null;
+  getAvailableTiles: () => Tile[];
+  getSelectedTile: () => Tile | null;
   getTransformedShape: () => Shape | null;
   canAdvance: () => boolean;
   advanceReward: () => number;
@@ -97,7 +97,7 @@ interface GameStore {
 
   // UI actions
   setActiveTab: (tab: ActiveTab) => void;
-  selectPatch: (choice: number | null) => void;
+  selectTile: (choice: number | null) => void;
   rotate: () => void;
   flip: () => void;
   setHoverCell: (cell: { row: number; col: number } | null) => void;
@@ -106,8 +106,8 @@ interface GameStore {
 
   // Game actions (send to server)
   advance: () => void;
-  placePatch: (row: number, col: number) => void;
-  placeSpecialPatch: (row: number, col: number) => void;
+  placeTile: (row: number, col: number) => void;
+  placeSpecialTile: (row: number, col: number) => void;
 }
 
 function generateRoomId(): string {
@@ -118,7 +118,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Connection state — restore from session if available
   connectionPhase: savedSession ? 'waiting' : 'lobby',
   roomId: savedSession?.roomId ?? null,
-  playerName: savedSession?.playerName ?? localStorage.getItem('patchwork_playerName') ?? '',
+  playerName: savedSession?.playerName ?? localStorage.getItem('tessera_playerName') ?? '',
   myPlayerId: null,
   roomState: null,
   error: null,
@@ -130,7 +130,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // UI state
   activeTab: 'myBoard',
-  selectedPatchChoice: null,
+  selectedTileChoice: null,
   currentRotation: 0,
   isFlipped: false,
   hoverCell: null,
@@ -140,24 +140,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setSendAction: (fn) => set({ _sendAction: fn }),
 
   // Derived helpers
-  getAvailablePatches: () => {
+  getAvailableTiles: () => {
     const { gameState } = get();
     if (!gameState) return [];
-    return getAvailablePatches(gameState);
+    return getAvailableTiles(gameState);
   },
 
-  getSelectedPatch: () => {
-    const { gameState, selectedPatchChoice } = get();
-    if (!gameState || selectedPatchChoice === null) return null;
-    const patches = getAvailablePatches(gameState);
-    return patches[selectedPatchChoice] ?? null;
+  getSelectedTile: () => {
+    const { gameState, selectedTileChoice } = get();
+    if (!gameState || selectedTileChoice === null) return null;
+    const tiles = getAvailableTiles(gameState);
+    return tiles[selectedTileChoice] ?? null;
   },
 
   getTransformedShape: () => {
-    const patch = get().getSelectedPatch();
-    if (!patch) return null;
+    const tile = get().getSelectedTile();
+    if (!tile) return null;
     const { currentRotation, isFlipped } = get();
-    return transformShape(patch.shape, currentRotation, isFlipped);
+    return transformShape(tile.shape, currentRotation, isFlipped);
   },
 
   canAdvance: () => {
@@ -187,7 +187,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   // Lobby actions
   setPlayerName: (name) => {
-    localStorage.setItem('patchwork_playerName', name);
+    localStorage.setItem('tessera_playerName', name);
     set({ playerName: name });
   },
 
@@ -214,7 +214,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       roomState: null,
       gameState: null,
       error: null,
-      selectedPatchChoice: null,
+      selectedTileChoice: null,
       activeTab: 'myBoard',
       opponentDisconnected: false,
       reconnectToken: crypto.randomUUID(),
@@ -228,7 +228,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   handleRoomState: (state) => {
     const { connectionPhase: current } = get();
-    // Don't overwrite coinFlip phase — let the animation finish
     if (current === 'coinFlip') {
       set({ roomState: state });
       return;
@@ -249,7 +248,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   handleGameState: (gameState) => {
     const { connectionPhase, myPlayerId } = get();
-    // First game state received (from waiting) → show coin flip
     const isFirstGameState = connectionPhase === 'waiting';
     const isMyTurn = myPlayerId !== null && gameState.activePlayerId === myPlayerId;
     set({
@@ -259,7 +257,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         : isFirstGameState
           ? 'coinFlip'
           : 'playing',
-      selectedPatchChoice: null,
+      selectedTileChoice: null,
       currentRotation: 0,
       isFlipped: false,
       hoverCell: null,
@@ -268,9 +266,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     });
   },
 
-  handlePlayerJoined: () => {
-    // Player joined notification — playerId is handled by ASSIGNED message
-  },
+  handlePlayerJoined: () => {},
 
   handlePlayerDisconnected: (playerId) => {
     const { myPlayerId } = get();
@@ -293,8 +289,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // UI actions
   setActiveTab: (tab) => set({ activeTab: tab }),
 
-  selectPatch: (choice) => set({
-    selectedPatchChoice: choice,
+  selectTile: (choice) => set({
+    selectedTileChoice: choice,
     currentRotation: 0,
     isFlipped: false,
     hoverCell: null,
@@ -306,11 +302,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setHoverCell: (cell) => set({ hoverCell: cell }),
   setPendingPlacement: (cell) => set({ pendingPlacement: cell }),
   confirmPlacement: () => {
-    const { pendingPlacement, _sendAction, selectedPatchChoice, currentRotation, isFlipped } = get();
-    if (!_sendAction || pendingPlacement === null || selectedPatchChoice === null || !get().isMyTurn()) return;
+    const { pendingPlacement, _sendAction, selectedTileChoice, currentRotation, isFlipped } = get();
+    if (!_sendAction || pendingPlacement === null || selectedTileChoice === null || !get().isMyTurn()) return;
     _sendAction({
-      type: 'TAKE_PATCH',
-      patchChoice: selectedPatchChoice,
+      type: 'TAKE_TILE',
+      tileChoice: selectedTileChoice,
       placement: { row: pendingPlacement.row, col: pendingPlacement.col, rotation: currentRotation, flipped: isFlipped },
     });
     set({ pendingPlacement: null });
@@ -323,19 +319,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     _sendAction({ type: 'ADVANCE' });
   },
 
-  placePatch: (row, col) => {
-    const { _sendAction, selectedPatchChoice, currentRotation, isFlipped } = get();
-    if (!_sendAction || selectedPatchChoice === null || !get().isMyTurn()) return;
+  placeTile: (row, col) => {
+    const { _sendAction, selectedTileChoice, currentRotation, isFlipped } = get();
+    if (!_sendAction || selectedTileChoice === null || !get().isMyTurn()) return;
     _sendAction({
-      type: 'TAKE_PATCH',
-      patchChoice: selectedPatchChoice,
+      type: 'TAKE_TILE',
+      tileChoice: selectedTileChoice,
       placement: { row, col, rotation: currentRotation, flipped: isFlipped },
     });
   },
 
-  placeSpecialPatch: (row, col) => {
+  placeSpecialTile: (row, col) => {
     const { _sendAction } = get();
     if (!_sendAction || !get().isMyTurn()) return;
-    _sendAction({ type: 'PLACE_SPECIAL_PATCH', row, col });
+    _sendAction({ type: 'PLACE_SPECIAL_TILE', row, col });
   },
 }));

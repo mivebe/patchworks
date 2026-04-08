@@ -19,7 +19,7 @@ interface PlayerConnection {
   connected: boolean;
 }
 
-export default class PatchworkServer implements Party.Server {
+export default class TesseraServer implements Party.Server {
   players: PlayerConnection[] = [];
   gameState: GameState | null = null;
 
@@ -270,4 +270,4 @@ export default class PatchworkServer implements Party.Server {
   }
 }
 
-PatchworkServer satisfies Party.Worker;
+TesseraServer satisfies Party.Worker;

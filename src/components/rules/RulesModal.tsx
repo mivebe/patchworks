@@ -38,9 +38,9 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
 
         <div className="overflow-y-auto px-5 py-4 space-y-4 text-sm text-gray-300">
           <Section title="Overview">
-            Patchwork is a two-player strategy game. You compete to build the
-            most complete quilt on your personal 9&times;9 grid while managing
-            buttons (currency) and time.
+            Tessera is a two-player strategy game. You compete to build the
+            most complete mosaic on your personal 9&times;9 grid while managing
+            gems (currency) and time.
           </Section>
 
           <Section title="Turn Order">
@@ -55,14 +55,14 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
               <div>
                 <strong className="text-amber-400">Advance</strong> &mdash; Move
                 your token to one space ahead of your opponent. You earn{' '}
-                <strong className="text-white">1 button per space moved</strong>.
+                <strong className="text-white">1 gem per space moved</strong>.
               </div>
               <div>
-                <strong className="text-emerald-400">Take a Patch</strong>{' '}
-                &mdash; Buy one of the next 3 patches from the market. Pay its
-                button cost, place it on your quilt (rotate / flip as needed),
+                <strong className="text-emerald-400">Take a Tile</strong>{' '}
+                &mdash; Buy one of the next 3 glass tiles from the market. Pay its
+                gem cost, place it on your mosaic (rotate / flip as needed),
                 and advance on the time board by its time cost. The neutral
-                token moves to where that patch was.
+                token moves to where that tile was.
               </div>
             </div>
           </Section>
@@ -72,17 +72,17 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
             <div className="mt-2 space-y-1">
               <div>
                 <span className="inline-block w-3 h-3 rounded-sm bg-amber-700 mr-1.5 align-middle" />
-                <strong className="text-amber-400">Button Income</strong>{' '}
+                <strong className="text-amber-400">Gem Income</strong>{' '}
                 (spaces 5, 11, 17, 23, 29, 35, 41, 47, 53) &mdash; When you
-                pass one of these, you earn buttons equal to the total button
-                icons on all patches you have placed so far.
+                pass one of these, you earn gems equal to the total gem
+                icons on all tiles you have placed so far.
               </div>
               <div>
                 <span className="inline-block w-3 h-3 rounded-sm bg-cyan-700 mr-1.5 align-middle" />
-                <strong className="text-cyan-400">Special Patch</strong>{' '}
+                <strong className="text-cyan-400">Special Tile</strong>{' '}
                 (spaces 20, 26, 32, 44, 50) &mdash; The{' '}
                 <strong className="text-white">first player</strong> to pass
-                each of these spaces receives a free 1&times;1 patch to place
+                each of these spaces receives a free 1&times;1 tile to place
                 immediately. Once claimed, the other player cannot collect it.
               </div>
             </div>
@@ -90,14 +90,14 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
 
           <Section title="7&times;7 Bonus Tile">
             The first player to completely fill any 7&times;7 area on their
-            quilt earns a <strong className="text-white">+7 point</strong>{' '}
+            mosaic earns a <strong className="text-white">+7 point</strong>{' '}
             bonus. Only one player can earn this.
           </Section>
 
           <Section title="Game End &amp; Scoring">
             The game ends when both players reach or pass space 53.
             <div className="mt-2 bg-gray-700/50 rounded-lg px-3 py-2 font-mono text-white text-center">
-              Score = Buttons &minus; (2 &times; Empty Cells) + (7 if bonus tile)
+              Score = Gems &minus; (2 &times; Empty Cells) + (7 if bonus tile)
             </div>
             <p className="mt-2">Highest score wins!</p>
           </Section>
@@ -105,24 +105,24 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
           <Section title="Controls">
             <ul className="list-disc list-inside space-y-1">
               <li>
-                <strong className="text-white">R</strong> &mdash; Rotate patch
+                <strong className="text-white">R</strong> &mdash; Rotate tile
               </li>
               <li>
-                <strong className="text-white">F</strong> &mdash; Flip patch
+                <strong className="text-white">F</strong> &mdash; Flip tile
               </li>
-              <li>Tap a cell on your quilt to place the selected patch</li>
+              <li>Tap a cell on your mosaic to place the selected tile</li>
             </ul>
           </Section>
 
           <Section title="Player Info Legend">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-base">🟡</span>
-                <span><strong className="text-white">Buttons</strong> &mdash; Your currency. Spend to buy patches. Remaining buttons count toward your final score.</span>
+                <span className="text-base">💎</span>
+                <span><strong className="text-white">Gems</strong> &mdash; Your currency. Spend to buy tiles. Remaining gems count toward your final score.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-base">📈</span>
-                <span><strong className="text-green-400">Income</strong> &mdash; Button income from placed patches. Earned each time you pass a button income space.</span>
+                <span><strong className="text-green-400">Income</strong> &mdash; Gem income from placed tiles. Earned each time you pass a gem income space.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-base">⏳</span>
@@ -130,7 +130,7 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-base">🔲</span>
-                <span><strong className="text-red-400">Empty Cells</strong> &mdash; Unfilled cells on your 9&times;9 quilt. Each costs 2 points at game end.</span>
+                <span><strong className="text-red-400">Empty Cells</strong> &mdash; Unfilled cells on your 9&times;9 mosaic. Each costs 2 points at game end.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-base">⭐</span>
@@ -147,15 +147,15 @@ export function RulesModal({ open, onClose }: RulesModalProps) {
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded-sm bg-amber-700" />
-                <span><strong className="text-amber-400">Button Income</strong> &mdash; Earn buttons equal to your total patch income.</span>
+                <span><strong className="text-amber-400">Gem Income</strong> &mdash; Earn gems equal to your total tile income.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded-sm bg-teal-700" />
-                <span><strong className="text-teal-400">Special Patch</strong> &mdash; First to pass gets a free 1&times;1 patch.</span>
+                <span><strong className="text-teal-400">Special Tile</strong> &mdash; First to pass gets a free 1&times;1 tile.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded-sm bg-teal-900 opacity-50" />
-                <span className="text-gray-400">Special Patch (claimed) &mdash; Already taken by a player.</span>
+                <span className="text-gray-400">Special Tile (claimed) &mdash; Already taken by a player.</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-block w-4 h-4 rounded-full bg-purple-500 ring-1 ring-white" />

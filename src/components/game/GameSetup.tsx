@@ -37,7 +37,7 @@ export function GameSetup() {
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="bg-gray-800 rounded-xl p-4 md:p-8 w-full max-w-md shadow-2xl">
-        <h1 className="text-3xl font-bold text-white text-center mb-2">Patchwork</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-2">Tessera</h1>
         <p className="text-gray-400 text-center mb-4">Online multiplayer</p>
         <button
           onClick={() => setShowRules(true)}

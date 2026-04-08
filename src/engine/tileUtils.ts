@@ -1,5 +1,5 @@
 import type { Shape, Placement } from './types';
-import { QUILT_SIZE } from './types';
+import { MOSAIC_SIZE } from './types';
 
 /** Rotate a shape 90 degrees clockwise. */
 export function rotateCW(shape: Shape): Shape {
@@ -28,9 +28,9 @@ export function transformShape(shape: Shape, rotation: number, flipped: boolean)
   return result;
 }
 
-/** Check if a shape can be placed at the given position on a 9x9 quilt. */
+/** Check if a shape can be placed at the given position on a 9x9 mosaic. */
 export function canPlace(
-  quilt: boolean[][],
+  mosaic: boolean[][],
   shape: Shape,
   startRow: number,
   startCol: number
@@ -38,50 +38,50 @@ export function canPlace(
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[0].length; c++) {
       if (!shape[r][c]) continue;
-      const qr = startRow + r;
-      const qc = startCol + c;
-      if (qr < 0 || qr >= QUILT_SIZE || qc < 0 || qc >= QUILT_SIZE) return false;
-      if (quilt[qr][qc]) return false;
+      const mr = startRow + r;
+      const mc = startCol + c;
+      if (mr < 0 || mr >= MOSAIC_SIZE || mc < 0 || mc >= MOSAIC_SIZE) return false;
+      if (mosaic[mr][mc]) return false;
     }
   }
   return true;
 }
 
-/** Place a shape on the quilt, returning a new quilt. Does NOT validate — call canPlace first. */
-export function placeOnQuilt(
-  quilt: boolean[][],
+/** Place a shape on the mosaic, returning a new mosaic. Does NOT validate — call canPlace first. */
+export function placeOnMosaic(
+  mosaic: boolean[][],
   shape: Shape,
   startRow: number,
   startCol: number
 ): boolean[][] {
-  const newQuilt = quilt.map(row => [...row]);
+  const newMosaic = mosaic.map(row => [...row]);
   for (let r = 0; r < shape.length; r++) {
     for (let c = 0; c < shape[0].length; c++) {
       if (shape[r][c]) {
-        newQuilt[startRow + r][startCol + c] = true;
+        newMosaic[startRow + r][startCol + c] = true;
       }
     }
   }
-  return newQuilt;
+  return newMosaic;
 }
 
-/** Apply a full Placement (with rotation/flip) and return the new quilt, or null if invalid. */
+/** Apply a full Placement (with rotation/flip) and return the new mosaic, or null if invalid. */
 export function applyPlacement(
-  quilt: boolean[][],
+  mosaic: boolean[][],
   originalShape: Shape,
   placement: Placement
 ): boolean[][] | null {
   const shape = transformShape(originalShape, placement.rotation, placement.flipped);
-  if (!canPlace(quilt, shape, placement.row, placement.col)) {
+  if (!canPlace(mosaic, shape, placement.row, placement.col)) {
     return null;
   }
-  return placeOnQuilt(quilt, shape, placement.row, placement.col);
+  return placeOnMosaic(mosaic, shape, placement.row, placement.col);
 }
 
-/** Count the number of empty (false) cells on a quilt. */
-export function countEmptySpaces(quilt: boolean[][]): number {
+/** Count the number of empty (false) cells on a mosaic. */
+export function countEmptySpaces(mosaic: boolean[][]): number {
   let count = 0;
-  for (const row of quilt) {
+  for (const row of mosaic) {
     for (const cell of row) {
       if (!cell) count++;
     }
@@ -89,9 +89,9 @@ export function countEmptySpaces(quilt: boolean[][]): number {
   return count;
 }
 
-/** Create an empty 9x9 quilt board. */
-export function createEmptyQuilt(): boolean[][] {
-  return Array.from({ length: QUILT_SIZE }, () =>
-    Array.from({ length: QUILT_SIZE }, () => false)
+/** Create an empty 9x9 mosaic board. */
+export function createEmptyMosaic(): boolean[][] {
+  return Array.from({ length: MOSAIC_SIZE }, () =>
+    Array.from({ length: MOSAIC_SIZE }, () => false)
   );
 }

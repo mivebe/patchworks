@@ -1,4 +1,5 @@
 import type { GameState, GameAction } from '../src/engine/types';
+// Note: GameAction includes TAKE_TILE, PLACE_SPECIAL_TILE, ADVANCE
 
 /** Messages sent from client to server. */
 export type ClientMessage =

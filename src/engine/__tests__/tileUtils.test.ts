@@ -4,11 +4,11 @@ import {
   flipH,
   transformShape,
   canPlace,
-  placeOnQuilt,
+  placeOnMosaic,
   applyPlacement,
   countEmptySpaces,
-  createEmptyQuilt,
-} from '../patchUtils';
+  createEmptyMosaic,
+} from '../tileUtils';
 import type { Shape } from '../types';
 
 /** Helper to create typed shapes concisely. */
@@ -46,49 +46,49 @@ describe('transformShape', () => {
 });
 
 describe('canPlace', () => {
-  it('allows placing on empty quilt', () => {
-    expect(canPlace(createEmptyQuilt(), s([1, 1]), 0, 0)).toBe(true);
+  it('allows placing on empty mosaic', () => {
+    expect(canPlace(createEmptyMosaic(), s([1, 1]), 0, 0)).toBe(true);
   });
 
   it('rejects out-of-bounds placement', () => {
-    expect(canPlace(createEmptyQuilt(), s([1, 1, 1]), 0, 7)).toBe(false);
+    expect(canPlace(createEmptyMosaic(), s([1, 1, 1]), 0, 7)).toBe(false);
   });
 
   it('rejects overlapping placement', () => {
-    const quilt = createEmptyQuilt();
-    quilt[0][0] = true;
-    expect(canPlace(quilt, s([1, 1]), 0, 0)).toBe(false);
+    const mosaic = createEmptyMosaic();
+    mosaic[0][0] = true;
+    expect(canPlace(mosaic, s([1, 1]), 0, 0)).toBe(false);
   });
 
   it('allows adjacent non-overlapping placement', () => {
-    const quilt = createEmptyQuilt();
-    quilt[0][0] = true;
-    expect(canPlace(quilt, s([1, 1]), 0, 1)).toBe(true);
+    const mosaic = createEmptyMosaic();
+    mosaic[0][0] = true;
+    expect(canPlace(mosaic, s([1, 1]), 0, 1)).toBe(true);
   });
 });
 
-describe('placeOnQuilt', () => {
-  it('places a shape and returns new quilt', () => {
-    const quilt = createEmptyQuilt();
-    const newQuilt = placeOnQuilt(quilt, s([1, 0], [1, 1]), 0, 0);
-    expect(newQuilt[0][0]).toBe(true);
-    expect(newQuilt[0][1]).toBe(false);
-    expect(newQuilt[1][0]).toBe(true);
-    expect(newQuilt[1][1]).toBe(true);
-    expect(quilt[0][0]).toBe(false); // original unchanged
+describe('placeOnMosaic', () => {
+  it('places a shape and returns new mosaic', () => {
+    const mosaic = createEmptyMosaic();
+    const newMosaic = placeOnMosaic(mosaic, s([1, 0], [1, 1]), 0, 0);
+    expect(newMosaic[0][0]).toBe(true);
+    expect(newMosaic[0][1]).toBe(false);
+    expect(newMosaic[1][0]).toBe(true);
+    expect(newMosaic[1][1]).toBe(true);
+    expect(mosaic[0][0]).toBe(false); // original unchanged
   });
 });
 
 describe('applyPlacement', () => {
   it('returns null for invalid placement', () => {
-    const quilt = createEmptyQuilt();
-    quilt[0][0] = true;
-    const result = applyPlacement(quilt, s([1]), { row: 0, col: 0, rotation: 0, flipped: false });
+    const mosaic = createEmptyMosaic();
+    mosaic[0][0] = true;
+    const result = applyPlacement(mosaic, s([1]), { row: 0, col: 0, rotation: 0, flipped: false });
     expect(result).toBeNull();
   });
 
   it('applies rotation during placement', () => {
-    const result = applyPlacement(createEmptyQuilt(), s([1, 1, 1]), { row: 0, col: 0, rotation: 1, flipped: false });
+    const result = applyPlacement(createEmptyMosaic(), s([1, 1, 1]), { row: 0, col: 0, rotation: 1, flipped: false });
     expect(result).not.toBeNull();
     expect(result![0][0]).toBe(true);
     expect(result![1][0]).toBe(true);
@@ -98,14 +98,14 @@ describe('applyPlacement', () => {
 });
 
 describe('countEmptySpaces', () => {
-  it('counts all cells on empty quilt', () => {
-    expect(countEmptySpaces(createEmptyQuilt())).toBe(81);
+  it('counts all cells on empty mosaic', () => {
+    expect(countEmptySpaces(createEmptyMosaic())).toBe(81);
   });
 
   it('counts correctly after placement', () => {
-    const quilt = createEmptyQuilt();
-    quilt[0][0] = true;
-    quilt[0][1] = true;
-    expect(countEmptySpaces(quilt)).toBe(79);
+    const mosaic = createEmptyMosaic();
+    mosaic[0][0] = true;
+    mosaic[0][1] = true;
+    expect(countEmptySpaces(mosaic)).toBe(79);
   });
 });

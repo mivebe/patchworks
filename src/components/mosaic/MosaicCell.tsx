@@ -1,18 +1,18 @@
-interface QuiltCellProps {
+interface MosaicCellProps {
   filled: boolean;
   preview?: 'valid' | 'invalid' | null;
-  isSpecialPatchTarget?: boolean;
+  isSpecialTileTarget?: boolean;
   onClick?: () => void;
   playerColor?: string;
 }
 
-export function QuiltCell({
+export function MosaicCell({
   filled,
   preview,
-  isSpecialPatchTarget,
+  isSpecialTileTarget,
   onClick,
   playerColor = 'bg-purple-500',
-}: QuiltCellProps) {
+}: MosaicCellProps) {
   let className = 'aspect-square w-full border border-gray-600 transition-colors duration-75 ';
 
   if (filled) {
@@ -21,7 +21,7 @@ export function QuiltCell({
     className += 'bg-green-400/50 ';
   } else if (preview === 'invalid') {
     className += 'bg-red-400/50 ';
-  } else if (isSpecialPatchTarget) {
+  } else if (isSpecialTileTarget) {
     className += 'bg-yellow-400/20 hover:bg-yellow-400/40 cursor-pointer ';
   } else {
     className += 'bg-gray-800 ';

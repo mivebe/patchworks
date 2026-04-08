@@ -6,11 +6,11 @@
 
 export const theme = {
   me: {
-    /** Filled quilt cells */
+    /** Filled mosaic cells */
     cell: 'bg-purple-500',
     /** Raw hex color for inline styles (SVG, canvas) */
     hex: '#a855f7',
-    /** Text on time board, claimed patches */
+    /** Text on time board, claimed tiles */
     text: 'text-purple-400',
     /** Tab / button active background */
     tabActive: 'bg-purple-600',

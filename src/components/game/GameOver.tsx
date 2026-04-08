@@ -1,6 +1,6 @@
 import { useGameStore } from '../../store/gameStore';
 import { calculateScore } from '../../engine/scoring';
-import { countEmptySpaces } from '../../engine/patchUtils';
+import { countEmptySpaces } from '../../engine/tileUtils';
 import { playerTheme } from '../../theme';
 
 export function GameOver() {
@@ -13,7 +13,7 @@ export function GameOver() {
   const scores = gameState.players.map((p) => ({
     player: p,
     score: calculateScore(p),
-    empty: countEmptySpaces(p.quilt),
+    empty: countEmptySpaces(p.mosaic),
   }));
 
   const winner =
@@ -56,8 +56,8 @@ export function GameOver() {
               </div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-400">Buttons</span>
-                  <span className="text-white">+{player.buttons}</span>
+                  <span className="text-gray-400">Gems</span>
+                  <span className="text-white">+{player.gems}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Empty ({empty})</span>

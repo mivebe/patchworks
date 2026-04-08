@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { countEmptySpaces } from '../../engine/patchUtils';
+import { countEmptySpaces } from '../../engine/tileUtils';
 
 interface PlayerInfoProps {
   playerId: 0 | 1;
@@ -16,47 +16,46 @@ export function PlayerInfo({ playerId, onShowRules }: PlayerInfoProps) {
   if (!gameState || myPlayerId === null) return null;
 
   const player = gameState.players[playerId];
-  const empty = countEmptySpaces(player.quilt);
+  const empty = countEmptySpaces(player.mosaic);
   const isMyTurn = gameState.activePlayerId === myPlayerId;
 
   return (
     <div className="w-full rounded-lg p-2 md:p-3 bg-gray-800/50">
-      <div className="grid grid-cols-4 gap-1.5 text-sm">
-        {/* Row 1: bonus tile, turn indicator, rules + leave */}
-        <StatCell icon="⭐" value={player.hasSpecialTile ? '✓ +7' : '✗'} valueClass={player.hasSpecialTile ? 'text-yellow-400' : 'text-gray-500'} />
-        <div className="col-span-2 flex items-center justify-center">
-          {isMyTurn ? (
-            <span className="text-[10px] md:text-xs bg-green-600 text-white px-1.5 py-0.5 rounded-full animate-pulse whitespace-nowrap">
-              Your turn
-            </span>
-          ) : (
-            <span className="text-[10px] md:text-xs bg-gray-600 text-gray-300 px-1.5 py-0.5 rounded-full whitespace-nowrap">
-              Waiting
-            </span>
-          )}
-        </div>
-        <div className="flex items-center justify-end gap-1">
-          {onShowRules && (
-            <button
-              onClick={onShowRules}
-              className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded transition-colors"
-            >
-              Rules
-            </button>
-          )}
+      {/* Row 1: turn indicator (left), rules + leave (right) */}
+      <div className="flex items-center gap-1.5 mb-1.5">
+        {isMyTurn ? (
+          <span className="text-xs md:text-sm bg-green-600 text-white px-2.5 py-1 rounded-full animate-pulse whitespace-nowrap">
+            Your turn
+          </span>
+        ) : (
+          <span className="text-xs md:text-sm bg-gray-600 text-gray-300 px-2.5 py-1 rounded-full whitespace-nowrap">
+            Waiting
+          </span>
+        )}
+        <div className="flex-1" />
+        {onShowRules && (
           <button
-            onClick={() => setConfirmLeave(true)}
-            className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white rounded transition-colors"
+            onClick={onShowRules}
+            className="px-3 py-1 text-xs md:text-sm bg-gray-700 hover:bg-gray-600 text-gray-400 hover:text-white rounded transition-colors"
           >
-            Leave
+            Rules
           </button>
-        </div>
+        )}
+        <button
+          onClick={() => setConfirmLeave(true)}
+          className="px-3 py-1 text-xs md:text-sm bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white rounded transition-colors"
+        >
+          Leave
+        </button>
+      </div>
 
-        {/* Row 2: stats */}
-        <StatCell icon="🟡" value={`${player.buttons}`} valueClass="text-white" />
-        <StatCell icon="📈" value={`+${player.totalButtonIncome}`} valueClass="text-green-400" />
+      {/* Row 2: all stats */}
+      <div className="grid grid-cols-5 gap-1.5 text-sm">
+        <StatCell icon="💎" value={`${player.gems}`} valueClass="text-white" />
+        <StatCell icon="📈" value={`+${player.totalGemIncome}`} valueClass="text-green-400" />
         <StatCell icon="⏳" value={`${player.timePosition}/53`} valueClass="text-white" />
         <StatCell icon="🔲" value={`${empty}`} valueClass="text-red-400" />
+        <StatCell icon="⭐" value={player.hasSpecialTile ? '✓ +7' : '✗'} valueClass={player.hasSpecialTile ? 'text-yellow-400' : 'text-gray-500'} />
       </div>
 
       {confirmLeave && (

@@ -1,17 +1,17 @@
 import { useRef, useState, useEffect } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { canPlace } from '../../engine/patchUtils';
-import { QUILT_SIZE } from '../../engine/types';
+import { canPlace } from '../../engine/tileUtils';
+import { MOSAIC_SIZE } from '../../engine/types';
 
-interface PatchOverlayInnerProps {
+interface TileOverlayInnerProps {
   boardWidth: number;
 }
 
 /**
  * Inner component that resets state when the key changes
- * (key is set by the wrapper based on patch selection/rotation/flip).
+ * (key is set by the wrapper based on tile selection/rotation/flip).
  */
-function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
+function TileOverlayInner({ boardWidth }: TileOverlayInnerProps) {
   const gameState = useGameStore((s) => s.gameState);
   const myPlayerId = useGameStore((s) => s.myPlayerId);
   const getTransformedShape = useGameStore((s) => s.getTransformedShape);
@@ -26,7 +26,7 @@ function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
 
-  const cellSize = boardWidth > 0 ? boardWidth / QUILT_SIZE : 0;
+  const cellSize = boardWidth > 0 ? boardWidth / MOSAIC_SIZE : 0;
   const shapeRows = shape?.length ?? 0;
   const shapeCols = shape?.[0]?.length ?? 0;
 
@@ -39,11 +39,11 @@ function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
   // Snapped grid cell
   const col = cellSize > 0 ? Math.round(posX / cellSize) : 0;
   const row = cellSize > 0 ? Math.round(posY / cellSize) : 0;
-  const clampedRow = shape ? Math.max(-(shapeRows - 1), Math.min(QUILT_SIZE - 1, row)) : 0;
-  const clampedCol = shape ? Math.max(-(shapeCols - 1), Math.min(QUILT_SIZE - 1, col)) : 0;
+  const clampedRow = shape ? Math.max(-(shapeRows - 1), Math.min(MOSAIC_SIZE - 1, row)) : 0;
+  const clampedCol = shape ? Math.max(-(shapeCols - 1), Math.min(MOSAIC_SIZE - 1, col)) : 0;
 
   const valid = shape && gameState && myPlayerId !== null
-    ? canPlace(gameState.players[myPlayerId].quilt, shape, clampedRow, clampedCol)
+    ? canPlace(gameState.players[myPlayerId].mosaic, shape, clampedRow, clampedCol)
     : false;
 
   // Sync snapped cell to store for board preview
@@ -128,25 +128,25 @@ function PatchOverlayInner({ boardWidth }: PatchOverlayInnerProps) {
   );
 }
 
-interface PatchOverlayProps {
+interface TileOverlayProps {
   boardWidth: number;
 }
 
 /**
- * Wrapper that uses a key to reset all drag state when the patch/rotation/flip changes.
+ * Wrapper that uses a key to reset all drag state when the tile/rotation/flip changes.
  */
-export function PatchOverlay({ boardWidth }: PatchOverlayProps) {
-  const selectedPatchChoice = useGameStore((s) => s.selectedPatchChoice);
+export function TileOverlay({ boardWidth }: TileOverlayProps) {
+  const selectedTileChoice = useGameStore((s) => s.selectedTileChoice);
   const currentRotation = useGameStore((s) => s.currentRotation);
   const isFlipped = useGameStore((s) => s.isFlipped);
   const isMyTurn = useGameStore((s) => s.isMyTurn);
   const gameState = useGameStore((s) => s.gameState);
 
-  if (selectedPatchChoice === null || !isMyTurn() || !gameState || gameState.phase !== 'playing') {
+  if (selectedTileChoice === null || !isMyTurn() || !gameState || gameState.phase !== 'playing') {
     return null;
   }
 
-  const key = `${selectedPatchChoice}-${currentRotation}-${isFlipped}`;
+  const key = `${selectedTileChoice}-${currentRotation}-${isFlipped}`;
 
-  return <PatchOverlayInner key={key} boardWidth={boardWidth} />;
+  return <TileOverlayInner key={key} boardWidth={boardWidth} />;
 }

@@ -1,22 +1,22 @@
-import type { Patch } from '../../engine/types';
+import type { Tile } from '../../engine/types';
 
-interface PatchThumbnailProps {
-  patch: Patch;
+interface TileThumbnailProps {
+  tile: Tile;
   isAvailable?: boolean;
   isSelected?: boolean;
   onClick?: () => void;
   size?: 'sm' | 'md';
 }
 
-export function PatchThumbnail({
-  patch,
+export function TileThumbnail({
+  tile,
   isAvailable = false,
   isSelected = false,
   onClick,
   size = 'sm',
-}: PatchThumbnailProps) {
+}: TileThumbnailProps) {
   const cellSize = size === 'sm' ? 'w-3 h-3' : 'w-5 h-5';
-  const cols = patch.shape[0].length;
+  const cols = tile.shape[0].length;
 
   let borderClass = 'border-2 border-gray-700';
   if (isSelected) borderClass = 'border-2 border-yellow-400 shadow-lg shadow-yellow-400/20';
@@ -34,7 +34,7 @@ export function PatchThumbnail({
         className="grid gap-px"
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
-        {patch.shape.flatMap((row, r) =>
+        {tile.shape.flatMap((row, r) =>
           row.map((cell, c) => (
             <div
               key={`${r}-${c}`}
@@ -45,10 +45,10 @@ export function PatchThumbnail({
       </div>
       {size === 'md' && (
         <div className="flex gap-2 text-xs text-gray-300 mt-1">
-          <span title="Button cost">🟡{patch.buttonCost}</span>
-          <span title="Time cost">⏳{patch.timeCost}</span>
-          {patch.buttonIncome > 0 && (
-            <span title="Button income" className="text-green-400">📈+{patch.buttonIncome}</span>
+          <span title="Gem cost">💎{tile.gemCost}</span>
+          <span title="Time cost">⏳{tile.timeCost}</span>
+          {tile.gemIncome > 0 && (
+            <span title="Gem income" className="text-green-400">📈+{tile.gemIncome}</span>
           )}
         </div>
       )}

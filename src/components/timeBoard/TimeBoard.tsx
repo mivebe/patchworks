@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
-import { BUTTON_INCOME_SPACES, SPECIAL_PATCH_SPACES } from '../../engine/timeBoard';
+import { GEM_INCOME_SPACES, SPECIAL_TILE_SPACES } from '../../engine/timeBoard';
 import { TIME_BOARD_SPACES } from '../../engine/types';
 import { playerTheme } from '../../theme';
 
@@ -13,9 +13,9 @@ export function TimeBoard() {
   const [p0, p1] = gameState.players;
   const p0Theme = playerTheme(0, myPlayerId);
   const p1Theme = playerTheme(1, myPlayerId);
-  const buttonSet = new Set(BUTTON_INCOME_SPACES);
-  const specialSet = new Set(SPECIAL_PATCH_SPACES);
-  const claimedMap = new Map(gameState.claimedSpecialPatchSpaces.map(c => [c.position, c.playerId]));
+  const gemSet = new Set(GEM_INCOME_SPACES);
+  const specialSet = new Set(SPECIAL_TILE_SPACES);
+  const claimedMap = new Map(gameState.claimedSpecialTileSpaces.map(c => [c.position, c.playerId]));
 
   return (
     <div className={collapsed ? 'px-2' : 'p-2 md:p-4'}>
@@ -28,7 +28,7 @@ export function TimeBoard() {
       </button>
       {!collapsed && <div className="flex flex-wrap gap-1 justify-center max-w-lg mx-auto">
         {Array.from({ length: TIME_BOARD_SPACES }, (_, i) => {
-          const isButton = buttonSet.has(i);
+          const isGem = gemSet.has(i);
           const isSpecial = specialSet.has(i);
           const claimedBy = claimedMap.get(i);
           const isClaimed = claimedBy !== undefined;
@@ -36,8 +36,8 @@ export function TimeBoard() {
           const p1Here = p1.timePosition === i;
 
           let bgClass = 'bg-gray-700';
-          if (isButton && isSpecial) bgClass = isClaimed ? 'bg-pink-900 opacity-50' : 'bg-pink-700';
-          else if (isButton) bgClass = 'bg-amber-700';
+          if (isGem && isSpecial) bgClass = isClaimed ? 'bg-pink-900 opacity-50' : 'bg-pink-700';
+          else if (isGem) bgClass = 'bg-amber-700';
           else if (isSpecial) bgClass = isClaimed ? 'bg-teal-900 opacity-50' : 'bg-teal-700';
 
           const claimedIndicator = isClaimed && !p0Here && !p1Here;
@@ -46,7 +46,7 @@ export function TimeBoard() {
             <div
               key={i}
               className={`w-6 h-6 md:w-7 md:h-7 ${bgClass} rounded-sm flex items-center justify-center text-[10px] relative`}
-              title={`Space ${i}${isButton ? ' (Button Income)' : ''}${isSpecial ? (isClaimed ? ` (Claimed by ${claimedBy === 0 ? p0.name : p1.name})` : ' (Special Patch)') : ''}`}
+              title={`Space ${i}${isGem ? ' (Gem Income)' : ''}${isSpecial ? (isClaimed ? ` (Claimed by ${claimedBy === 0 ? p0.name : p1.name})` : ' (Special Tile)') : ''}`}
             >
               {p0Here && p1Here ? (
                 <svg width="14" height="14" viewBox="0 0 14 14" className="md:w-4 md:h-4">
